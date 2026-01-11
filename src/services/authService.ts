@@ -1,12 +1,11 @@
-import axios from "./axiosInstance";
-import type { LoginRequest, LoginResponse } from "../types/auth";
+import API from "./api";
 
-export const login = async (
-  payload: LoginRequest
-): Promise<LoginResponse> => {
-  const response = await axios.post<LoginResponse>(
-    "/auth/login",
-    payload
-  );
+export interface LoginResponse {
+  token: string;
+  role: "Employee" | "Manager";
+}
+
+export const login = async (username: string, password: string): Promise<LoginResponse> => {
+  const response = await API.post<LoginResponse>("/login", { username, password });
   return response.data;
 };

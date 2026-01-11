@@ -1,26 +1,13 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "../pages/login/Login";
 
-import ProtectedRoute from "./ProtectedRoute";
-import Login from "../pages/Login/login";
-import Dashboard from "../pages/Dashboard/Dashboard";
-
-const AppRoutes = () => (
-  <Routes>
-    <Route path="/" element={<Navigate to="/login" />} />
-
-    <Route path="/login" element={<Login />} />
-
-    <Route
-      path="/dashboard"
-      element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      }
-    />
-
-    <Route path="*" element={<Navigate to="/login" />} />
-  </Routes>
+const AppRoutes: React.FC = () => (
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Login />} />
+    </Routes>
+  </BrowserRouter>
 );
 
 export default AppRoutes;

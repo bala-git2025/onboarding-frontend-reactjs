@@ -1,58 +1,58 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// src/pages/Login.tsx
+import React, { useState } from "react";
 import { login } from "../../services/authService";
+import { useNavigate } from "react-router-dom";
+import MainLayout from "../../layouts/MainLayout";
+import styles from "../../styles/Login.module.css";
 
-const Login = () => {
-  const [username, setUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
+const Login: React.FC = () => {
+  const [employeeId, setEmployeeId] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
+  const handleLogin = async () => {
     try {
-      const response = await login({ username, password });
-      sessionStorage.setItem("token", response.token);
+      const data = await login(employeeId, password);
+      localStorage.setItem("token", data.token);
 
-      // Role-based navigation
-      if (response.role === "ADMIN") {
-        navigate("/admin/dashboard");
+      if (data.role === "Employee") {
+        navigate("/employee-dashboard");
       } else {
-        navigate("/dashboard");
+        navigate("/manager-dashboard");
       }
-    } catch (err) {
-      setError("Invalid username or password");
+    } catch {
+      alert("Invalid credentials");
     }
   };
 
   return (
-    <div className="login-container">
-      <form onSubmit={handleSubmit}>
-        <h2>Login</h2>
-
+    <MainLayout>
+      <div className={styles.loginBox}>
+        <h2>Sign In</h2>
         <input
           type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
+          placeholder="Enter your employee ID"
+          value={employeeId}
+          onChange={(e) => setEmployeeId(e.target.value)}
         />
-
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          required
         />
-
-        {error && <p style={{ color: "red" }}>{error}</p>}
-
-        <button type="submit">Login</button>
-      </form>
-    </div>
+        <label>
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+          />
+          &nbsp;Remember me
+        </label>
+        <button onClick={handleLogin}>Sign In</button>
+      </div>
+    </MainLayout>
   );
 };
 
