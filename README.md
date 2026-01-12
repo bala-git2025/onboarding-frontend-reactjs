@@ -11,6 +11,11 @@ It provides login functionality and role-based dashboards for employees and mana
 - Shared layout with Header and Footer
 - Responsive design using CSS modules
 
+## Prerequisites Before running the project, ensure you have the following installed: 
+- **Node.js** (version 18 or higher recommended) 
+- **npm** (comes with Node.js) as your package manager 
+- A backend API server (for authentication and data) running locally or remotely
+
 ## Project Structure
 src/
 ├── components/       # Reusable UI components (Header, Footer)
@@ -20,13 +25,16 @@ src/
 └── services/         # API service functions (authService/employeeService/managerService)
 
 ## Getting Started
-1. Install dependencies:
+
+1. Clone the repository: https://github.com/bala-git2025/onboarding-frontend-reactjs
+
+2. Install dependencies:
    npm install
 
-2. Run the development server:
+3. Run the development server:
    npm run dev
 
-3. Open the app in your browser:
+4. Open the app in your browser:
    http://localhost:4000
 
 ## Notes
