@@ -8,7 +8,7 @@ export default defineConfig({
     EnvironmentPlugin(["VITE_API_BASE_URL", "VITE_ENV", "VITE_PORT"])
   ],
   server: {
-    port: Number(process.env.VITE_PORT) || 3000,
+    port: Number(process.env.VITE_PORT) || 4000,
     open: true
   },
   build: {
