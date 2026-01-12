@@ -1,16 +1,28 @@
-// src/pages/manager/ManagerDashboard.tsx
 import React from "react";
-import MainLayout from "../../layouts/MainLayout";
-import styles from "../../styles/ManagerDashboard.module.css";
+import { Box, Card, CardContent, Typography } from "@mui/material";
 
 const ManagerDashboard: React.FC = () => {
   return (
-    <MainLayout>
-      <div className={styles.dashboard}>
-        <h2>Manager Dashboard</h2>
-        <p>Welcome to your dashboard. Here you can oversee employees, assign tasks, and review reports.</p>
-      </div>
-    </MainLayout>
+    <Box>
+      <Box display="flex" flexWrap="wrap" gap={2}>
+        <Card sx={{ flex: "1 1 320px" }}>
+          <CardContent>
+            <Typography variant="h6">Team Overview</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Metrics and status across your team.
+            </Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ flex: "1 1 320px" }}>
+          <CardContent>
+            <Typography variant="h6">Reports</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Latest reports and insights.
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    </Box>
   );
 };
 

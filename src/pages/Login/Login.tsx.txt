@@ -1,53 +1,36 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  Alert,
-} from "@mui/material";
+import { Box, Card, CardContent, Typography, TextField, Button, Checkbox, FormControlLabel, Alert } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
-import * as AuthService from "../../services/authService";
 
 const Login: React.FC = () => {
-  const [userId, setUserId] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleLogin = async () => {
-    if (!userId || !password) {
+  const EMPLOYEE_USER = "employee123";
+  const EMPLOYEE_PASS = "password123";
+  const MANAGER_USER = "manager123";
+  const MANAGER_PASS = "password123";
+
+  const handleLogin = () => {
+    if (!employeeId || !password) {
       setError("User ID and Password are required");
       return;
     }
+    let role: "Employee" | "Manager" | null = null;
+    if (employeeId === EMPLOYEE_USER && password === EMPLOYEE_PASS) role = "Employee";
+    else if (employeeId === MANAGER_USER && password === MANAGER_PASS) role = "Manager";
 
-    try {
-      setLoading(true);
-      const response = await AuthService.login(userId, password);
-
-      // response has { token, role, userName }
-      login(response.token, response.role, rememberMe, response.userName);
-
-      navigate(
-        response.role === "Employee"
-          ? "/employee-dashboard"
-          : "/manager-dashboard"
-      );
-    } catch (err: any) {
-      console.error(err);
-      setError(
-        err.response?.data?.message || "Invalid username or password"
-      );
-    } finally {
-      setLoading(false);
+    if (role) {
+      setError("");
+      login("test-token-123", role, rememberMe, employeeId);
+      navigate(role === "Employee" ? "/employee-dashboard" : "/manager-dashboard");
+    } else {
+      setError("Invalid username or password");
     }
   };
 
@@ -81,8 +64,8 @@ const Login: React.FC = () => {
               margin="normal"
               label="User ID"
               variant="outlined"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
+              value={employeeId}
+              onChange={(e) => setEmployeeId(e.target.value)}
             />
             <TextField
               fullWidth
@@ -94,25 +77,12 @@ const Login: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
             <FormControlLabel
-              control={
-                <Checkbox
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-              }
+              control={<Checkbox checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />}
               label="Remember me"
               sx={{ mt: 1 }}
             />
-            <Button
-              fullWidth
-              variant="contained"
-              color="primary"
-              size="large"
-              sx={{ mt: 2 }}
-              onClick={handleLogin}
-              disabled={loading}
-            >
-              {loading ? "Signing In..." : "Sign In"}
+            <Button fullWidth variant="contained" color="primary" size="large" sx={{ mt: 2 }} onClick={handleLogin}>
+              Sign In
             </Button>
           </CardContent>
         </Card>

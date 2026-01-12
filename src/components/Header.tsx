@@ -1,22 +1,61 @@
 import React from "react";
-import styles from "../styles/Header.module.css";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Box from "@mui/material/Box";
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import Brightness4Icon from "@mui/icons-material/Brightness4";
+import Brightness7Icon from "@mui/icons-material/Brightness7";
 import { useAuth } from "../context/AuthContext";
 
-const Header: React.FC = () => {
-  const { logout, role } = useAuth();
+interface HeaderProps {
+  darkMode: boolean;
+  toggleDarkMode: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
+  const { logout, role, userName } = useAuth();
+
+  const brandText =
+    role === "Employee"
+      ? "Employee Dashboard"
+      : role === "Manager"
+      ? "Manager Dashboard"
+      : "Onboarding System";
+
   return (
-    <header className={styles.header}>
-      <div className={styles.logo}>Onboarding System</div>
-       <nav className={styles.nav}>
-        {role === "Employee" && <a href="/employee-dashboard">Dashboard</a>}
-        {role === "Manager" && <a href="/manager-dashboard">Dashboard</a>}
-        {role && (
-          <button onClick={logout} className={styles.logoutBtn}>
-            Logout
-          </button>
-        )}
-      </nav>
-    </header>
+    <AppBar
+      position="sticky"
+      color="default"
+      elevation={1}
+      sx={{ top: 0, zIndex: (theme) => theme.zIndex.drawer + 1 }}
+    >
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Typography variant="h6" fontWeight="bold">
+          {brandText}
+        </Typography>
+
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <IconButton onClick={toggleDarkMode} color="inherit" sx={{ mr: 2 }}>
+            {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
+
+          {role && (
+            <>
+              <AccountCircle sx={{ mr: 1 }} />
+              <Typography variant="subtitle1" sx={{ mr: 2 }}>
+                Welcome, {userName}
+              </Typography>
+              <Button onClick={logout} variant="outlined" color="error" size="small">
+                Logout
+              </Button>
+            </>
+          )}
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 };
 

@@ -1,40 +1,46 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
-import Login from "./pages/login/Login";
-import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
-import ManagerDashboard from "./pages/manager/ManagerDashboard";
-import ProtectedRoute from "./routes/ProtectedRoute";
+import React, { useEffect, useState } from "react";
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import MainLayout from "./layouts/MainLayout";
+import { lightTheme, darkTheme } from "./theme";
 import { useAuth } from "./context/AuthContext";
 import LoadingSpinner from "./components/LoadingSpinner";
+import FadeInSlideScale from "./components/FadeInSlideScale";
+import AppRoutes from "./routes/AppRoutes"; // 👈 import routes
 
 const App: React.FC = () => {
+  const [darkMode, setDarkMode] = useState(false);
   const { loading } = useAuth();
 
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved === "dark") setDarkMode(true);
+  }, []);
+
+  const toggleDarkMode = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    localStorage.setItem("theme", next ? "dark" : "light");
+  };
+
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+        <CssBaseline />
+        <LoadingSpinner />
+      </ThemeProvider>
+    );
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route
-        path="/employee-dashboard"
-        element={
-          <ProtectedRoute allowedRole="Employee">
-            <EmployeeDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/manager-dashboard"
-        element={
-          <ProtectedRoute allowedRole="Manager">
-            <ManagerDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<div>Page Not Found</div>} />
-    </Routes>
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+      <CssBaseline />
+      <MainLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
+        <FadeInSlideScale duration={700} offset={30} scaleFrom={0.92}>
+          <AppRoutes /> {/* 👈 use central routes */}
+        </FadeInSlideScale>
+      </MainLayout>
+    </ThemeProvider>
   );
 };
 
