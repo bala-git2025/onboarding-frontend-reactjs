@@ -14,6 +14,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (saved === "dark") setDarkMode(true);
   }, []);
 
