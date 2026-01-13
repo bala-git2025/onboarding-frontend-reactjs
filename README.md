@@ -37,6 +37,14 @@ src/
 4. Open the app in your browser:
    http://localhost:4000
 
+## Login Credentials 
+### Employee - 
+**User Name:** `employee`
+**Password:** `welcome1` 
+### Manager - 
+**User Name:** `manager`
+**Password:** `welcome1`
+
 ## Notes
 - Dashboards are accessible only after login.
 - User role determines which dashboard is shown.

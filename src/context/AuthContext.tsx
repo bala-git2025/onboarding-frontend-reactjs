@@ -8,7 +8,7 @@ interface AuthContextType {
   login: (token: string, role: string, rememberMe: boolean, userName: string) => void;
   logout: () => void;
   loading: boolean;
-  isAuthenticated: boolean;   // 👈 added
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

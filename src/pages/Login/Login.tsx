@@ -15,7 +15,7 @@ import { useAuth } from "../../context/AuthContext";
 import * as AuthService from "../../services/authService";
 
 const Login: React.FC = () => {
-  const [userId, setUserId] = useState("");
+  const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
@@ -24,28 +24,23 @@ const Login: React.FC = () => {
   const { login } = useAuth();
 
   const handleLogin = async () => {
-    if (!userId || !password) {
-      setError("User ID and Password are required");
+    if (!userName || !password) {
+      setError("User Name and Password are required");
       return;
     }
 
     try {
       setLoading(true);
-      const response = await AuthService.login(userId, password);
+      const response = await AuthService.login(userName, password);
 
       // response has { token, role, userName }
       login(response.token, response.role, rememberMe, response.userName);
 
-      navigate(
-        response.role === "Employee"
-          ? "/employee-dashboard"
-          : "/manager-dashboard"
-      );
-    } catch (err: any) {
+      navigate(response.role === "Employee"? "/employee-dashboard": "/manager-dashboard");
+
+    } catch (err) {
       console.error(err);
-      setError(
-        err.response?.data?.message || "Invalid username or password"
-      );
+      setError("Invalid username or password");
     } finally {
       setLoading(false);
     }
@@ -79,10 +74,10 @@ const Login: React.FC = () => {
             <TextField
               fullWidth
               margin="normal"
-              label="User ID"
+              label="User Name"
               variant="outlined"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
             />
             <TextField
               fullWidth

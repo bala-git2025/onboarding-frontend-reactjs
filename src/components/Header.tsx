@@ -46,7 +46,7 @@ const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
             <>
               <AccountCircle sx={{ mr: 1 }} />
               <Typography variant="subtitle1" sx={{ mr: 2 }}>
-                Welcome, {userName}
+                Welcome, {userName && userName.trim() !== "" ? userName : "Guest"}
               </Typography>
               <Button onClick={logout} variant="outlined" color="error" size="small">
                 Logout

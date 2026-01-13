@@ -3,9 +3,9 @@ import { Box } from "@mui/material";
 
 interface FadeInSlideScaleProps {
   children: React.ReactNode;
-  duration?: number; // ms
-  offset?: number;   // vertical offset in px
-  scaleFrom?: number; // starting scale factor
+  duration?: number;
+  offset?: number;
+  scaleFrom?: number;
 }
 
 const FadeInSlideScale: React.FC<FadeInSlideScaleProps> = ({

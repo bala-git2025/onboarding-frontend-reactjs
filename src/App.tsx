@@ -38,7 +38,7 @@ const App: React.FC = () => {
       <CssBaseline />
       <MainLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
         <FadeInSlideScale duration={700} offset={30} scaleFrom={0.92}>
-          <AppRoutes /> {/* 👈 use central routes */}
+          <AppRoutes />
         </FadeInSlideScale>
       </MainLayout>
     </ThemeProvider>
