@@ -38,9 +38,20 @@ const Login: React.FC = () => {
 
       navigate(response.role === "Employee"? "/employee-dashboard": "/manager-dashboard");
 
-    } catch (err) {
-      console.error(err);
-      setError("Invalid username or password");
+    } catch (err: any) {
+      if (err.response) {
+        if (err.response.status === 401) { 
+          setError("Invalid username or password"); 
+        } else if (err.response.status >= 500) {
+           setError("Server error. Please try again later."); 
+          } else { 
+            setError(err.response.data?.message || "An unexpected error occurred"); 
+          } 
+        } else if (err.request) { 
+          setError("No response from server. Please check your connection."); 
+        } else { 
+          setError("Unexpected error occurred. Please try again."); 
+        }
     } finally {
       setLoading(false);
     }
