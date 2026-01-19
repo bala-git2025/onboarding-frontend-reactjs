@@ -1,9 +1,10 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Login from "../pages/login/Login";
+import Login from "../pages/Login/Login";
 import EmployeeDashboard from "../pages/employee/EmployeeDashboard";
 import ManagerDashboard from "../pages/manager/ManagerDashboard";
 import ProtectedRoute from "./ProtectedRoute";
+import TaskDetail from "../pages/employee/TaskDetail";
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -27,6 +28,14 @@ const AppRoutes: React.FC = () => (
       }
     />
 
+    <Route
+      path="/task/:taskId"
+      element={
+        <ProtectedRoute allowedRole="Employee">
+          <TaskDetail />
+        </ProtectedRoute>
+      }
+    />
     <Route path="*" element={<Login />} />
   </Routes>
 );

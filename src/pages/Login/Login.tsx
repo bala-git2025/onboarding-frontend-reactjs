@@ -38,9 +38,13 @@ const Login: React.FC = () => {
 
       navigate(response.role === "Employee"? "/employee-dashboard": "/manager-dashboard");
 
-    } catch (err: any) {
-        setError(err.customMessage || "Something went wrong"); 
-    } finally {
+    } catch (err: unknown) {
+    if (err && typeof err === 'object' && 'customMessage' in err) {
+        setError((err as { customMessage: string }).customMessage);
+    } else {
+        setError("Something went wrong");
+    }
+} finally {
       setLoading(false);
     }
   };
