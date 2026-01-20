@@ -1,92 +1,283 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { taskService } from "../../services/taskService";
-
-interface Task {
-  id: number;
-  name: string;
-  status: string;
-  description: string;
-  createdOn: string;
-  createdBy: number | string;
-}
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Chip,
+  Button,
+  TextField,
+  Divider,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Avatar
+} from "@mui/material";
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowBack } from "@mui/icons-material";
+import { 
+  getTaskDetail, 
+  updateTaskStatus, 
+  addTaskComment,
+  TaskDetail as TaskDetailType
+} from "../../services/employeeService";
 
 const TaskDetail: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
-
-  const [task, setTask] = useState<Task | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const [task, setTask] = useState<TaskDetailType | null>(null);
+  const [status, setStatus] = useState<string>("");
+  const [newComment, setNewComment] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [updating, setUpdating] = useState<boolean>(false);
 
   useEffect(() => {
-    const loadTask = async () => {
-      if (!taskId) return;
+    const fetchTaskDetail = async () => {
       try {
-        const data = await taskService.getTaskById(parseInt(taskId));
-        setTask(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load task");
+        if (taskId) {
+          const taskData = await getTaskDetail(parseInt(taskId));
+          setTask(taskData);
+          setStatus(taskData.status);
+        }
+      } catch (error) {
+        console.error("Failed to fetch task details", error);
       } finally {
         setLoading(false);
       }
     };
-    loadTask();
+
+    fetchTaskDetail();
   }, [taskId]);
 
-  if (loading) return <div className="app-container">Loading...</div>;
-  if (error) return <div className="app-container">Error: {error}</div>;
-  if (!task) return <div className="app-container">No task found.</div>;
-
-  const getStatusClass = (status: string) => {
-    switch(status) {
-      case 'Pending': return 'status-pending';
-      case 'Sent for Review': return 'status-review';
-      case 'Completed': return 'status-completed';
-      default: return '';
+  const handleStatusUpdate = async () => {
+    if (!task || !taskId) return;
+    
+    try {
+      setUpdating(true);
+      await updateTaskStatus(parseInt(taskId), status);
+      setTask({ ...task, status });
+    } catch (error) {
+      console.error("Failed to update task status", error);
+    } finally {
+      setUpdating(false);
     }
   };
 
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !task || !taskId) return;
+    
+    try {
+      const comment = await addTaskComment(parseInt(taskId), newComment);
+      setTask({ 
+        ...task, 
+        comments: [comment, ...task.comments] 
+      });
+      setNewComment("");
+    } catch (error) {
+      console.error("Failed to add comment", error);
+    }
+  };
+
+  const handleCancel = () => {
+    navigate("/employee-dashboard");
+  };
+
+  const getStatusColor = (status: string): "default" | "info" | "warning" | "success" | "secondary" => {
+    switch (status) {
+      case "New":
+        return "info";
+      case "In Progress":
+        return "warning";
+      case "Sent for Review":
+        return "secondary";
+      case "Complete":
+        return "success";
+      default:
+        return "default";
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  };
+
+  if (loading) {
+    return <Typography sx={{ p: 3 }}>Loading task details...</Typography>;
+  }
+
+  if (!task) {
+    return <Typography sx={{ p: 3 }}>Task not found</Typography>;
+  }
+
   return (
-    <div className="app-container">
-      <header style={{ marginBottom: '20px' }}>
-        <Link to="/employee-dashboard" style={{ textDecoration: 'none', color: '#2c3e50' }}>
-          &larr; Back to Dashboard
-        </Link>
-      </header>
+    <Box sx={{ p: 3, backgroundColor: "#f4f6fb", minHeight: "100vh" }}>
+      <Box display="flex" alignItems="center" mb={3}>
+        <IconButton onClick={() => navigate("/employee-dashboard")} sx={{ mr: 1 }}>
+          <ArrowBack />
+        </IconButton>
+        <Typography variant="h5" fontWeight="bold">
+          Task Details
+        </Typography>
+      </Box>
 
-      <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h1 style={{ fontSize: '1.8rem', color: '#2c3e50', margin: 0 }}>
-              {task.name}
-            </h1>
-            <span className={`status-badge ${getStatusClass(task.status)}`}>
-              {task.status}
-            </span>
-          </div>
-        </div>
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" mb={2}>
+            {task.name}
+          </Typography>
 
-        <hr style={{ border: 0, borderTop: '1px solid #eee', margin: '20px 0' }} />
+          <Box display="flex" flexWrap="wrap" mb={2} sx={{ gap: 2 }}>
+            <Box flex="1" minWidth={300}>
+              <Typography variant="body2" color="text.secondary" mb={1}>
+                Status
+              </Typography>
+              <Box display="flex" alignItems="center" gap={2}>
+                <Chip
+                  label={task.status}
+                  color={getStatusColor(task.status)}
+                  size="small"
+                />
+                <TextField
+                  select
+                  size="small"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  sx={{ minWidth: 150 }}
+                  SelectProps={{ native: true }}
+                >
+                  <option value="New">New</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Sent for Review">Sent for Review</option>
+                  <option value="Complete">Complete</option>
+                </TextField>
+              </Box>
+            </Box>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3 className="info-label">Description</h3>
-          <p style={{ lineHeight: '1.6', color: '#34495e' }}>
-            {task.description}
-          </p>
-        </div>
+            <Box flex="1" minWidth={300}>
+              <Typography variant="body2" color="text.secondary" mb={1}>
+                Due Date
+              </Typography>
+              <Typography>
+                {formatDate(task.dueDate)}
+              </Typography>
+            </Box>
+          </Box>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '30px' }}>
-          <div>
-            <span className="info-label">Created On:</span>
-            <div className="info-value">{new Date(task.createdOn).toLocaleDateString()}</div>
-          </div>
-          <div>
-            <span className="info-label">Created By:</span>
-            <div className="info-value">{task.createdBy}</div>
-          </div>
-        </div>
-      </div>
-    </div>
+          <Box display="flex" flexWrap="wrap" mb={2} sx={{ gap: 2 }}>
+            <Box flex="1" minWidth={300}>
+              <Typography variant="body2" color="text.secondary" mb={1}>
+                Created On
+              </Typography>
+              <Typography>
+                {formatDate(task.createdOn)}
+              </Typography>
+            </Box>
+
+            <Box flex="1" minWidth={300}>
+              <Typography variant="body2" color="text.secondary" mb={1}>
+                Point of Contact
+              </Typography>
+              <Typography>{task.pointOfContact}</Typography>
+            </Box>
+          </Box>
+
+          <Box mt={2} mb={2}>
+            <Typography variant="body2" color="text.secondary" mb={1}>
+              Task Description
+            </Typography>
+            <Typography>{task.description}</Typography>
+          </Box>
+
+          <Box display="flex" justifyContent="flex-end" gap={2}>
+            <Button variant="outlined" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleStatusUpdate}
+              disabled={updating || status === task.status}
+            >
+              {updating ? "Updating..." : "Update Status"}
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Typography variant="h6" mb={2}>
+            Comments
+          </Typography>
+
+          <Box mb={2}>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              placeholder="Add a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+            />
+            <Box display="flex" justifyContent="flex-end" mt={1}>
+              <Button
+                variant="contained"
+                onClick={handleAddComment}
+                disabled={!newComment.trim()}
+              >
+                Add Comment
+              </Button>
+            </Box>
+          </Box>
+
+          <Divider sx={{ my: 2 }} />
+
+          {task.comments.length === 0 ? (
+            <Typography color="text.secondary">
+              No comments yet.
+            </Typography>
+          ) : (
+            <List>
+              {task.comments.map((comment) => (
+                <ListItem key={comment.id} alignItems="flex-start">
+                  <Avatar sx={{ mr: 2, bgcolor: "primary.main" }}>
+                    {comment.author.charAt(0)}
+                  </Avatar>
+                  <ListItemText
+                    primary={
+                      <Box display="flex" justifyContent="space-between">
+                        <Typography fontWeight="bold">{comment.author}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {formatDateTime(comment.timestamp)}
+                        </Typography>
+                      </Box>
+                    }
+                    secondary={comment.text}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 

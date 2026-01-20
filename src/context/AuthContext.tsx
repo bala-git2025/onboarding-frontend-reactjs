@@ -26,6 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedUser = localStorage.getItem("userName") || sessionStorage.getItem("userName");
 
     if (storedToken && storedRole && storedUser) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToken(storedToken);
       setRole(storedRole);
       setUserName(storedUser);
@@ -75,6 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
