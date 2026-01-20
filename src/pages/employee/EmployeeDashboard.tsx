@@ -6,22 +6,26 @@ import {
   Typography,
   Chip,
   Button,
-  Divider,
-  Alert
+  Divider
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import {
-  getEmployeeDetails,
-  getEmployeeTasks,
-  Employee,
-  EmployeeTask,
-  ApiError
-} from "../../services/employeeService";
+import { getEmployeeDetails } from "../../services/employeeService";
+import { taskService, Task } from "../../services/taskService";
 
+/* ------------------ TYPES ------------------ */
+interface Employee {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  joiningDate: string;
+  primarySkill: string;
+}
 
-const statusColor = (
+/* ------------------ STATUS COLOR ------------------ */
+const getStatusColor = (
   status: string
-): "default" | "info" | "warning" | "success" | "secondary" => {
+): "default" | "info" | "warning" | "secondary" | "success" => {
   switch (status) {
     case "New":
       return "info";
@@ -29,7 +33,7 @@ const statusColor = (
       return "warning";
     case "Sent for Review":
       return "secondary";
-    case "Complete":
+    case "Completed":
       return "success";
     default:
       return "default";
@@ -38,49 +42,20 @@ const statusColor = (
 
 const EmployeeDashboard: React.FC = () => {
   const [employee, setEmployee] = useState<Employee | null>(null);
-  const [tasks, setTasks] = useState<EmployeeTask[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
+  /* ------------------ LOAD DATA ------------------ */
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        console.log("Starting to load dashboard data...");
-        setError(null);
-        
-        console.log("Fetching employee details...");
-        const emp = await getEmployeeDetails();
-        console.log("Employee data received:", emp);
-        setEmployee(emp);
-        
-        localStorage.setItem("employeeId", emp.id.toString());
-        
-        console.log("Fetching employee tasks...");
-        const taskList = await getEmployeeTasks();
-        console.log("Tasks data received:", taskList);
-        setTasks(taskList);
-        
-      } catch (error: unknown) {
-        console.error("Failed to load employee dashboard", error);
-        const err = error as ApiError;
-        let errorMessage = "Failed to load data. Please try again.";
-        
-        if (err.response?.status === 401) {
-          errorMessage = "Authentication failed. Please login again.";
-          localStorage.removeItem("token");
-          localStorage.removeItem("role");
-          localStorage.removeItem("userName");
-          sessionStorage.removeItem("token");
-          sessionStorage.removeItem("role");
-          sessionStorage.removeItem("userName");
-          window.location.href = "/";
-        } else if (err.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-        
-        setError(errorMessage);
+        const empData = await getEmployeeDetails();
+        const taskData = await taskService.getAllTasks();
+
+        setEmployee(empData);
+        setTasks(taskData);
+      } catch (error) {
+        console.error("Dashboard load failed", error);
       } finally {
         setLoading(false);
       }
@@ -90,29 +65,16 @@ const EmployeeDashboard: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <Typography sx={{ p: 3 }}>Loading...</Typography>;
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-        <Button 
-          variant="contained" 
-          sx={{ mt: 2 }}
-          onClick={() => window.location.reload()}
-        >
-          Retry
-        </Button>
-      </Box>
-    );
+    return <Typography sx={{ p: 3 }}>Loading dashboard...</Typography>;
   }
 
   return (
-    <Box sx={{ p: 3, backgroundColor: "#f4f6fb", minHeight: "100vh" }}>
-      {/* ================= Personal Details ================= */}
+    <Box sx={{ p: 3, backgroundColor: "#f5f7fb", minHeight: "100vh" }}>
+      <Typography variant="h5" fontWeight="bold" mb={3}>
+        Employee Dashboard
+      </Typography>
+
+      {/* ================= SECTION 1: PERSONAL DETAILS ================= */}
       {employee && (
         <Card sx={{ mb: 3 }}>
           <CardContent>
@@ -136,65 +98,49 @@ const EmployeeDashboard: React.FC = () => {
         </Card>
       )}
 
-      {/* ================= Task List ================= */}
+      {/* ================= SECTION 2: TASK LIST ================= */}
       <Card>
         <CardContent>
           <Typography variant="h6" mb={2}>
             Task List
           </Typography>
 
-          {tasks.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 3 }}>
-              <Typography color="text.secondary" mb={2}>
-                No tasks assigned.
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Tasks assigned to you will appear here.
-              </Typography>
-            </Box>
-          ) : (
-            tasks.map((task) => (
-              <Box key={task.id} sx={{ mb: 2 }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  <Box>
-                    <Typography fontWeight="bold">
-                      <Link 
-                        to={`/task/${task.id}`} 
-                        style={{ 
-                          textDecoration: "none",
-                          color: "inherit"
-                        }}
-                      >
-                        {task.taskName}
-                      </Link>
-                    </Typography>
+          {tasks.length === 0 && (
+            <Typography color="text.secondary">
+              No tasks assigned.
+            </Typography>
+          )}
 
-                    <Typography variant="body2" color="text.secondary">
-                      Due: {task.dueDate}
-                    </Typography>
-                  </Box>
+          {tasks.map((task) => (
+            <Box key={task.id} sx={{ mb: 2 }}>
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box>
+                  <Typography fontWeight="bold">
+                    <Link to={`/task/${task.id}`} style={{ textDecoration: "none" }}>
+                      {task.name}
+                    </Link>
+                  </Typography>
 
-                  <Box display="flex" gap={2} alignItems="center">
-                    <Chip
-                      label={task.status}
-                      color={statusColor(task.status)}
-                      size="small"
-                    />
-                    <Button 
-                      size="small" 
-                      variant="outlined"
-                      component={Link}
-                      to={`/task/${task.id}`}
-                    >
-                      Edit
-                    </Button>
-                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Due Date: {task.dueDate}
+                  </Typography>
                 </Box>
 
-                <Divider sx={{ mt: 2 }} />
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Chip
+                    label={task.status}
+                    color={getStatusColor(task.status)}
+                    size="small"
+                  />
+                  <Button size="small" variant="outlined">
+                    Edit
+                  </Button>
+                </Box>
               </Box>
-            ))
-          )}
+
+              <Divider sx={{ mt: 2 }} />
+            </Box>
+          ))}
         </CardContent>
       </Card>
     </Box>
