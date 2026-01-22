@@ -4,6 +4,7 @@ export interface LoginResponse {
   token: string;
   role: "Employee" | "Manager";
   userName: string;
+  employeeId: number;
 }
 
 export const login = async (

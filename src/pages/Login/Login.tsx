@@ -33,18 +33,18 @@ const Login: React.FC = () => {
       setLoading(true);
       const response = await AuthService.login(userName, password);
 
-      // response has { token, role, userName }
-      login(response.token, response.role, rememberMe, response.userName);
+      // response has { token, role, userName, employeeId }
+      login(response.token, response.role, rememberMe, response.userName, response.employeeId);
 
       navigate(response.role === "Employee"? "/employee-dashboard": "/manager-dashboard");
 
     } catch (err: unknown) {
-    if (err && typeof err === 'object' && 'customMessage' in err) {
+      if (err && typeof err === 'object' && 'customMessage' in err) {
         setError((err as { customMessage: string }).customMessage);
-    } else {
+      } else {
         setError("Something went wrong");
-    }
-} finally {
+      }
+    } finally {
       setLoading(false);
     }
   };

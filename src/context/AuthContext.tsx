@@ -5,7 +5,8 @@ interface AuthContextType {
   token: string | null;
   role: string | null;
   userName: string | null;
-  login: (token: string, role: string, rememberMe: boolean, userName: string) => void;
+  employeeId: number | null;
+  login: (token: string, role: string, rememberMe: boolean, userName: string, employeeId: number) => void;
   logout: () => void;
   loading: boolean;
   isAuthenticated: boolean;
@@ -17,6 +18,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  const [employeeId, setEmployeeId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -24,12 +26,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedToken = localStorage.getItem("token") || sessionStorage.getItem("token");
     const storedRole = localStorage.getItem("role") || sessionStorage.getItem("role");
     const storedUser = localStorage.getItem("userName") || sessionStorage.getItem("userName");
+    const storedEmpId = localStorage.getItem("employeeId") || sessionStorage.getItem("employeeId");
 
-    if (storedToken && storedRole && storedUser) {
+    if (storedToken && storedRole && storedUser && storedEmpId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setToken(storedToken);
       setRole(storedRole);
       setUserName(storedUser);
+      setEmployeeId(Number(storedEmpId));
 
       if (storedRole === "Employee") {
         navigate("/employee-dashboard", { replace: true });
@@ -40,19 +44,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, [navigate]);
 
-  const login = (newToken: string, newRole: string, rememberMe: boolean, newUserName: string) => {
+  const login = (newToken: string, newRole: string, rememberMe: boolean, newUserName: string, newEmployeeId: number) => {
     setToken(newToken);
     setRole(newRole);
     setUserName(newUserName);
+    setEmployeeId(newEmployeeId);
 
     if (rememberMe) {
       localStorage.setItem("token", newToken);
       localStorage.setItem("role", newRole);
       localStorage.setItem("userName", newUserName);
+      localStorage.setItem("employeeId", String(newEmployeeId));
     } else {
       sessionStorage.setItem("token", newToken);
       sessionStorage.setItem("role", newRole);
       sessionStorage.setItem("userName", newUserName);
+      sessionStorage.setItem("employeeId", String(newEmployeeId));
     }
   };
 
@@ -60,6 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setRole(null);
     setUserName(null);
+    setEmployeeId(null);
     localStorage.clear();
     sessionStorage.clear();
     navigate("/", { replace: true });
@@ -69,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider
-      value={{ token, role, userName, login, logout, loading, isAuthenticated }}
+      value={{ token, role, userName, employeeId, login, logout, loading, isAuthenticated }}
     >
       {children}
     </AuthContext.Provider>

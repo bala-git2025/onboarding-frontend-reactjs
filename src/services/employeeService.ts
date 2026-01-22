@@ -11,9 +11,13 @@ export interface Employee {
 
 export interface EmployeeTask {
   id: number;
-  taskName: string;
+  name: string;
+  description: string;
   dueDate: string;
   status: string;
+  createdOn: string;
+  POC: string;
+  employeeTaskId: number;
 }
 
 export interface TaskDetail {
@@ -44,45 +48,53 @@ export interface ApiError {
   message?: string;
 }
 
-export const getEmployeeDetails = async (): Promise<Employee> => {
+export const getEmployeeDetails = async (employeeId: number): Promise<Employee> => {
   try {
-    const res = await API.get("/employee/me");
+    const res = await API.get(`/employees/${employeeId}`);
     console.log("Employee details response:", res.data);
     return res.data.employee;
   } catch (error: unknown) {
     const err = error as ApiError;
     console.error("Error fetching employee details:", err);
-    console.error("Error response:", err.response?.data);
     throw err;
   }
 };
 
-export const getEmployeeTasks = async (): Promise<EmployeeTask[]> => {
+export const getEmployeeTasks = async (employeeId: number): Promise<EmployeeTask[]> => {
   try {
-    const res = await API.get("/employee/me/tasks");
+    const res = await API.get(`/employees/${employeeId}/tasks`);
     console.log("Employee tasks response:", res.data);
     return res.data.tasks;
   } catch (error: unknown) {
     const err = error as ApiError;
     console.error("Error fetching employee tasks:", err);
-    console.error("Error response:", err.response?.data);
     throw err;
   }
 };
 
-export const getTaskDetail = async (taskId: number): Promise<TaskDetail> => {
-  const employeeId = localStorage.getItem("employeeId") || sessionStorage.getItem("employeeId");
+export const getTaskDetail = async (employeeId: number, taskId: number): Promise<TaskDetail> => {
   const res = await API.get(`/employees/${employeeId}/tasks/${taskId}`);
-  return res.data.task;
+  const task = res.data.task;
+  const commentsRes = await API.get(`/task-comments/${taskId}`);
+
+  return {
+    ...task,
+    pointOfContact: task.POC || "N/A",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    comments: commentsRes.data.taskComments.map((c: any) => ({
+      id: c.id,
+      text: c.comment,
+      author: "User",
+      timestamp: c.createdOn
+    }))
+  };
 };
 
-export const updateTaskStatus = async (taskId: number, status: string): Promise<void> => {
-  const employeeId = localStorage.getItem("employeeId") || sessionStorage.getItem("employeeId");
+export const updateTaskStatus = async (employeeId: number, taskId: number, status: string): Promise<void> => {
   await API.put(`/employees/${employeeId}/tasks/${taskId}`, { status });
 };
 
-export const addTaskComment = async (taskId: number, comment: string): Promise<TaskComment> => {
-  const employeeId = localStorage.getItem("employeeId") || sessionStorage.getItem("employeeId");
+export const addTaskComment = async (employeeId: number, taskId: number, comment: string): Promise<TaskComment> => {
   const res = await API.post(`/employees/${employeeId}/tasks/${taskId}/comments`, { comment });
   return res.data.comment;
 };

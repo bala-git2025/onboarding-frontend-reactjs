@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowBack } from "@mui/icons-material";
+import { useAuth } from "../../context/AuthContext";
 import { 
   getTaskDetail, 
   updateTaskStatus, 
@@ -25,6 +26,7 @@ import {
 
 const TaskDetail: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
+  const { employeeId } = useAuth();
   const navigate = useNavigate();
   const [task, setTask] = useState<TaskDetailType | null>(null);
   const [status, setStatus] = useState<string>("");
@@ -35,8 +37,8 @@ const TaskDetail: React.FC = () => {
   useEffect(() => {
     const fetchTaskDetail = async () => {
       try {
-        if (taskId) {
-          const taskData = await getTaskDetail(parseInt(taskId));
+        if (taskId && employeeId) {
+          const taskData = await getTaskDetail(employeeId, parseInt(taskId));
           setTask(taskData);
           setStatus(taskData.status);
         }
@@ -48,14 +50,14 @@ const TaskDetail: React.FC = () => {
     };
 
     fetchTaskDetail();
-  }, [taskId]);
+  }, [taskId, employeeId]);
 
   const handleStatusUpdate = async () => {
-    if (!task || !taskId) return;
+    if (!task || !taskId || !employeeId) return;
     
     try {
       setUpdating(true);
-      await updateTaskStatus(parseInt(taskId), status);
+      await updateTaskStatus(employeeId, parseInt(taskId), status);
       setTask({ ...task, status });
     } catch (error) {
       console.error("Failed to update task status", error);
@@ -65,14 +67,22 @@ const TaskDetail: React.FC = () => {
   };
 
   const handleAddComment = async () => {
-    if (!newComment.trim() || !task || !taskId) return;
+    if (!newComment.trim() || !task || !taskId || !employeeId) return;
     
     try {
-      const comment = await addTaskComment(parseInt(taskId), newComment);
+      const tempComment = {
+          id: Date.now(),
+          text: newComment,
+          author: "You",
+          timestamp: new Date().toISOString()
+      };
       setTask({ 
         ...task, 
-        comments: [comment, ...task.comments] 
+        comments: [tempComment, ...task.comments] 
       });
+      
+      await addTaskComment(employeeId, parseInt(taskId), newComment);
+      
       setNewComment("");
     } catch (error) {
       console.error("Failed to add comment", error);
@@ -99,6 +109,7 @@ const TaskDetail: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -108,6 +119,7 @@ const TaskDetail: React.FC = () => {
   };
 
   const formatDateTime = (dateString: string) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       month: 'short',
@@ -202,7 +214,7 @@ const TaskDetail: React.FC = () => {
             <Typography variant="body2" color="text.secondary" mb={1}>
               Task Description
             </Typography>
-            <Typography>{task.description}</Typography>
+            <Typography>{task.description || "No description provided."}</Typography>
           </Box>
 
           <Box display="flex" justifyContent="flex-end" gap={2}>

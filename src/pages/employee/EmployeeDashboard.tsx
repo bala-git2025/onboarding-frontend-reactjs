@@ -6,11 +6,12 @@ import {
   Typography,
   Chip,
   Button,
-  Divider
+  Divider,
+  Alert
 } from "@mui/material";
-import { Link } from "react-router-dom";
-import { getEmployeeDetails } from "../../services/employeeService";
-import { taskService, Task } from "../../services/taskService";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getEmployeeDetails, getEmployeeTasks, EmployeeTask } from "../../services/employeeService";
 
 /* ------------------ TYPES ------------------ */
 interface Employee {
@@ -33,6 +34,7 @@ const getStatusColor = (
       return "warning";
     case "Sent for Review":
       return "secondary";
+    case "Complete":
     case "Completed":
       return "success";
     default:
@@ -41,38 +43,57 @@ const getStatusColor = (
 };
 
 const EmployeeDashboard: React.FC = () => {
+  const { employeeId } = useAuth();
+  const navigate = useNavigate();
   const [employee, setEmployee] = useState<Employee | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<EmployeeTask[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   /* ------------------ LOAD DATA ------------------ */
   useEffect(() => {
     const loadDashboard = async () => {
+      if (!employeeId) {
+        console.error("No employeeId found in auth context.");
+        setError("Employee ID missing. Please login again.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const empData = await getEmployeeDetails();
-        const taskData = await taskService.getAllTasks();
+        const empData = await getEmployeeDetails(employeeId);
+        const taskData = await getEmployeeTasks(employeeId);
 
         setEmployee(empData);
         setTasks(taskData);
-      } catch (error) {
-        console.error("Dashboard load failed", error);
+      } catch (err) {
+        console.error("Dashboard load failed", err);
+        setError("Failed to load dashboard data.");
       } finally {
         setLoading(false);
       }
     };
 
     loadDashboard();
-  }, []);
+  }, [employeeId, navigate]);
 
   if (loading) {
     return <Typography sx={{ p: 3 }}>Loading dashboard...</Typography>;
   }
 
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
+        <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate("/")}>
+          Go to Login
+        </Button>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 3, backgroundColor: "#f5f7fb", minHeight: "100vh" }}>
-      <Typography variant="h5" fontWeight="bold" mb={3}>
-        Employee Dashboard
-      </Typography>
 
       {/* ================= SECTION 1: PERSONAL DETAILS ================= */}
       {employee && (
@@ -90,7 +111,7 @@ const EmployeeDashboard: React.FC = () => {
               <Typography><b>Name:</b> {employee.name}</Typography>
               <Typography><b>Employee ID:</b> {employee.id}</Typography>
               <Typography><b>Email:</b> {employee.email}</Typography>
-              <Typography><b>Date of Joining:</b> {employee.joiningDate}</Typography>
+              <Typography><b>Date of Joining:</b> {new Date(employee.joiningDate).toLocaleDateString()}</Typography>
               <Typography><b>Phone:</b> {employee.phone}</Typography>
               <Typography><b>Primary Skill:</b> {employee.primarySkill}</Typography>
             </Box>
@@ -122,7 +143,7 @@ const EmployeeDashboard: React.FC = () => {
                   </Typography>
 
                   <Typography variant="body2" color="text.secondary">
-                    Due Date: {task.dueDate}
+                    Due Date: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'}
                   </Typography>
                 </Box>
 
