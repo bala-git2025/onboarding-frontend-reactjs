@@ -9,10 +9,10 @@ import {
   Divider,
   Alert
 } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getEmployeeDetails, getEmployeeTasks, EmployeeTask } from "../../services/employeeService";
-
+ 
 /* ------------------ TYPES ------------------ */
 interface Employee {
   id: number;
@@ -22,7 +22,7 @@ interface Employee {
   joiningDate: string;
   primarySkill: string;
 }
-
+ 
 /* ------------------ STATUS COLOR ------------------ */
 const getStatusColor = (
   status: string
@@ -41,7 +41,7 @@ const getStatusColor = (
       return "default";
   }
 };
-
+ 
 const EmployeeDashboard: React.FC = () => {
   const { employeeId } = useAuth();
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ const EmployeeDashboard: React.FC = () => {
   const [tasks, setTasks] = useState<EmployeeTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+ 
   /* ------------------ LOAD DATA ------------------ */
   useEffect(() => {
     const loadDashboard = async () => {
@@ -59,28 +59,29 @@ const EmployeeDashboard: React.FC = () => {
         setLoading(false);
         return;
       }
-
+ 
       try {
         const empData = await getEmployeeDetails(employeeId);
         const taskData = await getEmployeeTasks(employeeId);
-
+ 
         setEmployee(empData);
         setTasks(taskData);
-      } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (err: any) {
         console.error("Dashboard load failed", err);
-        setError("Failed to load dashboard data.");
+        setError(err.message || "Failed to load dashboard data.");
       } finally {
         setLoading(false);
       }
     };
-
+ 
     loadDashboard();
-  }, [employeeId, navigate]);
-
+  }, [employeeId]);
+ 
   if (loading) {
     return <Typography sx={{ p: 3 }}>Loading dashboard...</Typography>;
   }
-
+ 
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
@@ -91,10 +92,10 @@ const EmployeeDashboard: React.FC = () => {
       </Box>
     );
   }
-
+ 
   return (
     <Box sx={{ p: 3, backgroundColor: "#f5f7fb", minHeight: "100vh" }}>
-
+ 
       {/* ================= SECTION 1: PERSONAL DETAILS ================= */}
       {employee && (
         <Card sx={{ mb: 3 }}>
@@ -102,7 +103,7 @@ const EmployeeDashboard: React.FC = () => {
             <Typography variant="h6" mb={2}>
               Personal Details
             </Typography>
-
+ 
             <Box
               display="grid"
               gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
@@ -118,47 +119,62 @@ const EmployeeDashboard: React.FC = () => {
           </CardContent>
         </Card>
       )}
-
+ 
       {/* ================= SECTION 2: TASK LIST ================= */}
       <Card>
         <CardContent>
           <Typography variant="h6" mb={2}>
             Task List
           </Typography>
-
+ 
           {tasks.length === 0 && (
             <Typography color="text.secondary">
               No tasks assigned.
             </Typography>
           )}
-
+ 
           {tasks.map((task) => (
-            <Box key={task.id} sx={{ mb: 2 }}>
+            <Box
+              key={task.id}
+              sx={{
+                mb: 2,
+                p: 1,
+                borderRadius: 1,
+                cursor: "pointer",
+                '&:hover': { backgroundColor: "#f0f0f0" }
+              }}
+              onClick={() => navigate(`/task/${task.id}`)}
+            >
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
                   <Typography fontWeight="bold">
-                    <Link to={`/task/${task.id}`} style={{ textDecoration: "none" }}>
-                      {task.name}
-                    </Link>
+                    {task.name}
                   </Typography>
-
+ 
                   <Typography variant="body2" color="text.secondary">
                     Due Date: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'}
                   </Typography>
                 </Box>
-
+ 
                 <Box display="flex" alignItems="center" gap={2}>
                   <Chip
                     label={task.status}
                     color={getStatusColor(task.status)}
                     size="small"
                   />
-                  <Button size="small" variant="outlined">
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/task/${task.id}`);
+                    }}
+                  >
                     Edit
                   </Button>
                 </Box>
               </Box>
-
+ 
               <Divider sx={{ mt: 2 }} />
             </Box>
           ))}
@@ -167,5 +183,5 @@ const EmployeeDashboard: React.FC = () => {
     </Box>
   );
 };
-
+ 
 export default EmployeeDashboard;

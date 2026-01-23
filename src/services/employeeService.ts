@@ -38,55 +38,37 @@ export interface TaskComment {
   timestamp: string;
 }
 
-export interface ApiError {
-  response?: {
-    data?: {
-      message?: string;
-    };
-    status?: number;
-  };
-  message?: string;
+interface BackendComment {
+  id: number;
+  comment: string;
+  createdOn: string;
 }
 
 export const getEmployeeDetails = async (employeeId: number): Promise<Employee> => {
-  try {
-    const res = await API.get(`/employees/${employeeId}`);
-    console.log("Employee details response:", res.data);
-    return res.data.employee;
-  } catch (error: unknown) {
-    const err = error as ApiError;
-    console.error("Error fetching employee details:", err);
-    throw err;
-  }
+  const res = await API.get(`/employees/${employeeId}`);
+  return res.data.employee;
 };
 
 export const getEmployeeTasks = async (employeeId: number): Promise<EmployeeTask[]> => {
-  try {
-    const res = await API.get(`/employees/${employeeId}/tasks`);
-    console.log("Employee tasks response:", res.data);
-    return res.data.tasks;
-  } catch (error: unknown) {
-    const err = error as ApiError;
-    console.error("Error fetching employee tasks:", err);
-    throw err;
-  }
+  const res = await API.get(`/employees/${employeeId}/tasks`);
+  return res.data.tasks;
 };
 
 export const getTaskDetail = async (employeeId: number, taskId: number): Promise<TaskDetail> => {
   const res = await API.get(`/employees/${employeeId}/tasks/${taskId}`);
-  const task = res.data.task;
-  const commentsRes = await API.get(`/task-comments/${taskId}`);
-
+  const rawTask = res.data.task;
+  
+  const commentsRes = await API.get<{ taskComments: BackendComment[] }>(`/taskComments/${taskId}`);
+  
   return {
-    ...task,
-    pointOfContact: task.POC || "N/A",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    comments: commentsRes.data.taskComments.map((c: any) => ({
-      id: c.id,
-      text: c.comment,
-      author: "User",
-      timestamp: c.createdOn
-    }))
+      ...rawTask,
+      pointOfContact: rawTask.POC || "N/A",
+      comments: commentsRes.data.taskComments.map((c: BackendComment) => ({
+          id: c.id,
+          text: c.comment,
+          author: "User", 
+          timestamp: c.createdOn
+      }))
   };
 };
 
@@ -95,6 +77,12 @@ export const updateTaskStatus = async (employeeId: number, taskId: number, statu
 };
 
 export const addTaskComment = async (employeeId: number, taskId: number, comment: string): Promise<TaskComment> => {
-  const res = await API.post(`/employees/${employeeId}/tasks/${taskId}/comments`, { comment });
-  return res.data.comment;
+  await API.post(`/employees/${employeeId}/tasks/${taskId}/comments`, { comment });
+  
+  return {
+    id: Date.now(),
+    text: comment,
+    author: "You",
+    timestamp: new Date().toISOString()
+  };
 };

@@ -5,12 +5,19 @@ export interface LoginResponse {
   role: "Employee" | "Manager";
   userName: string;
   employeeId: number;
+  employeeName?: string;
 }
 
 export const login = async (
   userName: string,
   password: string
 ): Promise<LoginResponse> => {
-  const response = await API.post<LoginResponse>("/auth/login", { userName, password });
-  return response.data;
+  try {
+    const response = await API.post<LoginResponse>("/auth/login", { userName, password });
+    return response.data;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Invalid username or password";
+    throw new Error(errorMessage);
+  }
 };

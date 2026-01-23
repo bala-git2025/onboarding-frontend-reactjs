@@ -12,38 +12,68 @@ import {
   List,
   ListItem,
   ListItemText,
-  Avatar
+  Avatar,
+  CircularProgress,
+  Alert,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowBack } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
-import { 
-  getTaskDetail, 
-  updateTaskStatus, 
+import {
+  getTaskDetail,
+  updateTaskStatus,
   addTaskComment,
-  TaskDetail as TaskDetailType
+  TaskDetail as ImportedTaskDetailType
 } from "../../services/employeeService";
+
+interface CompleteTaskDetail extends ImportedTaskDetailType {
+  status: string;
+  description: string;
+  comments: Array<{
+    id: number;
+    text: string;
+    author: string;
+    timestamp: string;
+  }>;
+  completedOn?: string | null;
+  createdBy?: string;
+}
 
 const TaskDetail: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const { employeeId } = useAuth();
   const navigate = useNavigate();
-  const [task, setTask] = useState<TaskDetailType | null>(null);
+  const [task, setTask] = useState<CompleteTaskDetail | null>(null);
   const [status, setStatus] = useState<string>("");
   const [newComment, setNewComment] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [updating, setUpdating] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTaskDetail = async () => {
+      if (!taskId || !employeeId) {
+        setError("Task ID or Employee ID is missing.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        if (taskId && employeeId) {
-          const taskData = await getTaskDetail(employeeId, parseInt(taskId));
-          setTask(taskData);
-          setStatus(taskData.status);
+        const taskData = await getTaskDetail(employeeId, parseInt(taskId)) as CompleteTaskDetail;
+        setTask(taskData);
+        setStatus(taskData.status);
+        setError(null);
+      } catch (err: unknown) {
+        console.error("Failed to fetch task details", err);
+        let errorMessage = "An unknown error occurred.";
+        if (err instanceof Error) {
+          errorMessage = err.message;
         }
-      } catch (error) {
-        console.error("Failed to fetch task details", error);
+        setError(errorMessage || "Failed to load task details. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -54,13 +84,15 @@ const TaskDetail: React.FC = () => {
 
   const handleStatusUpdate = async () => {
     if (!task || !taskId || !employeeId) return;
-    
+
     try {
       setUpdating(true);
       await updateTaskStatus(employeeId, parseInt(taskId), status);
       setTask({ ...task, status });
+      setError(null);
     } catch (error) {
       console.error("Failed to update task status", error);
+      setError("Failed to update status. Please try again.");
     } finally {
       setUpdating(false);
     }
@@ -68,24 +100,19 @@ const TaskDetail: React.FC = () => {
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !task || !taskId || !employeeId) return;
-    
+
     try {
-      const tempComment = {
-          id: Date.now(),
-          text: newComment,
-          author: "You",
-          timestamp: new Date().toISOString()
-      };
-      setTask({ 
-        ...task, 
-        comments: [tempComment, ...task.comments] 
-      });
-      
+     
       await addTaskComment(employeeId, parseInt(taskId), newComment);
       
+      const updatedTaskData = await getTaskDetail(employeeId, parseInt(taskId)) as CompleteTaskDetail;
+      setTask(updatedTaskData);
+      
       setNewComment("");
+      setError(null);
     } catch (error) {
       console.error("Failed to add comment", error);
+      setError("Failed to add comment. Please try again.");
     }
   };
 
@@ -95,200 +122,187 @@ const TaskDetail: React.FC = () => {
 
   const getStatusColor = (status: string): "default" | "info" | "warning" | "success" | "secondary" => {
     switch (status) {
-      case "New":
-        return "info";
-      case "In Progress":
-        return "warning";
-      case "Sent for Review":
-        return "secondary";
-      case "Complete":
-        return "success";
-      default:
-        return "default";
+      case "New": return "info";
+      case "In Progress": return "warning";
+      case "Sent for Review": return "secondary";
+      case "Complete": return "success";
+      default: return "default";
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
-  const formatDateTime = (dateString: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    });
+  const formatCompletedDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Not completed';
+    return formatDate(dateString);
   };
 
   if (loading) {
-    return <Typography sx={{ p: 3 }}>Loading task details...</Typography>;
+    return <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}><CircularProgress /></Box>;
   }
 
-  if (!task) {
+  if (!task && !error) {
     return <Typography sx={{ p: 3 }}>Task not found</Typography>;
   }
 
   return (
     <Box sx={{ p: 3, backgroundColor: "#f4f6fb", minHeight: "100vh" }}>
-      <Box display="flex" alignItems="center" mb={3}>
-        <IconButton onClick={() => navigate("/employee-dashboard")} sx={{ mr: 1 }}>
-          <ArrowBack />
-        </IconButton>
-        <Typography variant="h5" fontWeight="bold">
-          Task Details
-        </Typography>
-      </Box>
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" mb={2}>
-            {task.name}
+      {!error && task && (
+        <>
+          <Typography variant="h4" fontWeight="bold" mb={2}>
+            Task Details
           </Typography>
 
-          <Box display="flex" flexWrap="wrap" mb={2} sx={{ gap: 2 }}>
-            <Box flex="1" minWidth={300}>
-              <Typography variant="body2" color="text.secondary" mb={1}>
-                Status
-              </Typography>
-              <Box display="flex" alignItems="center" gap={2}>
-                <Chip
-                  label={task.status}
-                  color={getStatusColor(task.status)}
-                  size="small"
-                />
-                <TextField
-                  select
-                  size="small"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  sx={{ minWidth: 150 }}
-                  SelectProps={{ native: true }}
-                >
-                  <option value="New">New</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Sent for Review">Sent for Review</option>
-                  <option value="Complete">Complete</option>
-                </TextField>
+          <Box display="flex" alignItems="center" mb={3}>
+            <IconButton onClick={() => navigate("/employee-dashboard")} sx={{ mr: 1 }}>
+              <ArrowBack />
+            </IconButton>
+            <Typography variant="h5" fontWeight="bold" sx={{ flexGrow: 1 }}>
+              {task.name}
+            </Typography>
+            <Chip label={task.status} color={getStatusColor(task.status)} />
+          </Box>
+
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Box display="flex" flexWrap="wrap" gap={4}>
+                <Box flexGrow={1} sx={{ minWidth: '250px' }}>
+                  <Typography variant="body2" color="text.secondary">Due Date</Typography>
+                  <Typography variant="body1" sx={{ mb: 2 }}>{formatDate(task.dueDate)}</Typography>
+
+                  <Typography variant="body2" color="text.secondary">Created On</Typography>
+                  <Typography variant="body1" sx={{ mb: 2 }}>{formatDate(task.createdOn)}</Typography>
+
+                  <Typography variant="body2" color="text.secondary">Completed On</Typography>
+                  <Typography variant="body1" sx={{ mb: 2 }}>{formatCompletedDate(task.completedOn)}</Typography>
+                </Box>
+
+                <Box flexGrow={1} sx={{ minWidth: '250px' }}>
+                  <Typography variant="body2" color="text.secondary">Created By</Typography>
+                  <Typography variant="body1" sx={{ mb: 2 }}>{task.createdBy || 'N/A'}</Typography>
+
+                  <Typography variant="body2" color="text.secondary">Point of Contact</Typography>
+                  <Typography variant="body1" sx={{ mb: 2 }}>{task.pointOfContact}</Typography>
+                </Box>
               </Box>
-            </Box>
 
-            <Box flex="1" minWidth={300}>
-              <Typography variant="body2" color="text.secondary" mb={1}>
-                Due Date
+              <Divider sx={{ my: 3 }} />
+
+              <Typography variant="h6" gutterBottom>Task Description</Typography>
+              <Typography variant="body1" sx={{ mb: 3 }}>
+                {task.description || "No description provided."}
               </Typography>
-              <Typography>
-                {formatDate(task.dueDate)}
-              </Typography>
-            </Box>
-          </Box>
 
-          <Box display="flex" flexWrap="wrap" mb={2} sx={{ gap: 2 }}>
-            <Box flex="1" minWidth={300}>
-              <Typography variant="body2" color="text.secondary" mb={1}>
-                Created On
-              </Typography>
-              <Typography>
-                {formatDate(task.createdOn)}
-              </Typography>
-            </Box>
+              <Divider sx={{ my: 3 }} />
 
-            <Box flex="1" minWidth={300}>
-              <Typography variant="body2" color="text.secondary" mb={1}>
-                Point of Contact
-              </Typography>
-              <Typography>{task.pointOfContact}</Typography>
-            </Box>
-          </Box>
-
-          <Box mt={2} mb={2}>
-            <Typography variant="body2" color="text.secondary" mb={1}>
-              Task Description
-            </Typography>
-            <Typography>{task.description || "No description provided."}</Typography>
-          </Box>
-
-          <Box display="flex" justifyContent="flex-end" gap={2}>
-            <Button variant="outlined" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleStatusUpdate}
-              disabled={updating || status === task.status}
-            >
-              {updating ? "Updating..." : "Update Status"}
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent>
-          <Typography variant="h6" mb={2}>
-            Comments
-          </Typography>
-
-          <Box mb={2}>
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
-              placeholder="Add a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-            />
-            <Box display="flex" justifyContent="flex-end" mt={1}>
-              <Button
-                variant="contained"
-                onClick={handleAddComment}
-                disabled={!newComment.trim()}
+              <Box 
+                display="flex" 
+                flexWrap="wrap" 
+                alignItems="center" 
+                justifyContent="space-between"
+                gap={2}
               >
-                Add Comment
-              </Button>
-            </Box>
+                <Box sx={{ flexGrow: 1 }}>
+                  <FormControl fullWidth variant="outlined">
+                    <InputLabel id="status-select-label">Update Status</InputLabel>
+                    <Select
+                      labelId="status-select-label"
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      label="Update Status"
+                    >
+                      <MenuItem value="New">New</MenuItem>
+                      <MenuItem value="In Progress">In Progress</MenuItem>
+                      <MenuItem value="Sent for Review">Sent for Review</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Note: Only New, In Progress and Sent for Review are available for Employee updates.
+              </Typography>
+                </Box>
+                <Box>
+                  <Button variant="outlined" onClick={handleCancel} sx={{ mr: 2 }}>Cancel</Button>
+                  <Button variant="contained" color="primary" onClick={handleStatusUpdate} disabled={updating || status === task.status}>
+                    {updating ? "Saving..." : "Save Changes"}
+                  </Button>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Comments</Typography>
+
+              {task.comments.length === 0 ? (
+                <Typography color="text.secondary" sx={{ mb: 2 }}>No comments yet.</Typography>
+              ) : (
+                <List sx={{ mb: 2 }}>
+                  {task.comments.map((comment) => (
+                    <ListItem 
+                      key={`${comment.id}-${comment.timestamp}`} 
+                      alignItems="flex-start" 
+                      sx={{ px: 0 }}
+                    >
+                      <Avatar sx={{ mr: 2, bgcolor: "primary.main" }}>
+                        {comment.author.charAt(0).toUpperCase()}
+                      </Avatar>
+                      <ListItemText
+                        primary={
+                          <Box display="flex" justifyContent="space-between">
+                            <Typography fontWeight="bold">{comment.author}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {new Date(comment.timestamp).toLocaleString()}
+                            </Typography>
+                          </Box>
+                        }
+                        secondary={comment.text}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+
+              <Divider sx={{ my: 2 }} />
+              
+              <Box mb={2}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Add a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                />
+                <Box display="flex" justifyContent="flex-end" mt={1}>
+                  <Button variant="contained" onClick={handleAddComment} disabled={!newComment.trim()}>
+                    Add Comment
+                  </Button>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              startIcon={<ArrowBack />}
+              onClick={() => navigate("/employee-dashboard")}
+            >
+              Back to Dashboard
+            </Button>
           </Box>
-
-          <Divider sx={{ my: 2 }} />
-
-          {task.comments.length === 0 ? (
-            <Typography color="text.secondary">
-              No comments yet.
-            </Typography>
-          ) : (
-            <List>
-              {task.comments.map((comment) => (
-                <ListItem key={comment.id} alignItems="flex-start">
-                  <Avatar sx={{ mr: 2, bgcolor: "primary.main" }}>
-                    {comment.author.charAt(0)}
-                  </Avatar>
-                  <ListItemText
-                    primary={
-                      <Box display="flex" justifyContent="space-between">
-                        <Typography fontWeight="bold">{comment.author}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {formatDateTime(comment.timestamp)}
-                        </Typography>
-                      </Box>
-                    }
-                    secondary={comment.text}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          )}
-        </CardContent>
-      </Card>
+        </>
+      )}
     </Box>
   );
 };

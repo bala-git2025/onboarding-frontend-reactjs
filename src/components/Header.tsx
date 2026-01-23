@@ -9,6 +9,7 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   darkMode: boolean;
@@ -16,14 +17,17 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
-  const { logout, role, userName } = useAuth();
+  const { logout, role, userName, employeeName } = useAuth();
+  const navigate = useNavigate();
 
   const brandText =
     role === "Employee"
       ? "Employee Dashboard"
       : role === "Manager"
-      ? "Manager Dashboard"
-      : "Onboarding System";
+        ? "Manager Dashboard"
+        : "Onboarding System";
+
+  const displayName = employeeName || userName || "Guest";
 
   return (
     <AppBar
@@ -46,9 +50,17 @@ const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
             <>
               <AccountCircle sx={{ mr: 1 }} />
               <Typography variant="subtitle1" sx={{ mr: 2 }}>
-                Welcome, {userName && userName.trim() !== "" ? userName : "Guest"}
+                Welcome, {displayName}
               </Typography>
-              <Button onClick={logout} variant="outlined" color="error" size="small">
+              <Button
+                onClick={() => {
+                  logout();
+                  navigate("/", { replace: true });
+                }}
+                variant="outlined"
+                color="error"
+                size="small"
+              >
                 Logout
               </Button>
             </>

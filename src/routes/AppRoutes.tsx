@@ -5,11 +5,11 @@ import EmployeeDashboard from "../pages/employee/EmployeeDashboard";
 import ManagerDashboard from "../pages/manager/ManagerDashboard";
 import ProtectedRoute from "./ProtectedRoute";
 import TaskDetail from "../pages/employee/TaskDetail";
-
+ 
 const AppRoutes: React.FC = () => (
   <Routes>
     <Route path="/" element={<Login />} />
-
+ 
     <Route
       path="/employee-dashboard"
       element={
@@ -18,7 +18,7 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
-
+ 
     <Route
       path="/manager-dashboard"
       element={
@@ -27,7 +27,7 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
-
+ 
     <Route
       path="/task/:taskId"
       element={
@@ -35,9 +35,9 @@ const AppRoutes: React.FC = () => (
           <TaskDetail />
         </ProtectedRoute>
       }
-    />
+    /> 
     <Route path="*" element={<Login />} />
   </Routes>
 );
-
+ 
 export default AppRoutes;

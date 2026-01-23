@@ -24,25 +24,34 @@ const Login: React.FC = () => {
   const { login } = useAuth();
 
   const handleLogin = async () => {
+    setError("");
+
     if (!userName || !password) {
       setError("User Name and Password are required");
       return;
     }
 
     try {
-      setLoading(true);
+      setLoading(true);   
       const response = await AuthService.login(userName, password);
 
-      // response has { token, role, userName, employeeId }
-      login(response.token, response.role, rememberMe, response.userName, response.employeeId);
+      // response has { token, role, userName, employeeId, employeeName }
+      login(
+        response.token,
+        response.role,
+        rememberMe,
+        response.userName,
+        response.employeeId,
+        response.employeeName
+      );
 
-      navigate(response.role === "Employee"? "/employee-dashboard": "/manager-dashboard");
+      navigate(response.role === "Employee" ? "/employee-dashboard" : "/manager-dashboard");
 
     } catch (err: unknown) {
-      if (err && typeof err === 'object' && 'customMessage' in err) {
-        setError((err as { customMessage: string }).customMessage);
+      if (err instanceof Error) {
+        setError(err.message);
       } else {
-        setError("Something went wrong");
+        setError("An unexpected error occurred. Please try again.");
       }
     } finally {
       setLoading(false);

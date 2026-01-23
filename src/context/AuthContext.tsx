@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
   token: string | null;
   role: string | null;
   userName: string | null;
   employeeId: number | null;
-  login: (token: string, role: string, rememberMe: boolean, userName: string, employeeId: number) => void;
+  employeeName: string | null;
+  login: (token: string, role: string, rememberMe: boolean, userName: string, employeeId: number, employeeName?: string) => void;
   logout: () => void;
   loading: boolean;
   isAuthenticated: boolean;
@@ -19,14 +19,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [employeeId, setEmployeeId] = useState<number | null>(null);
+  const [employeeName, setEmployeeName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token") || sessionStorage.getItem("token");
     const storedRole = localStorage.getItem("role") || sessionStorage.getItem("role");
     const storedUser = localStorage.getItem("userName") || sessionStorage.getItem("userName");
     const storedEmpId = localStorage.getItem("employeeId") || sessionStorage.getItem("employeeId");
+    const storedEmpName = localStorage.getItem("employeeName") || sessionStorage.getItem("employeeName");
 
     if (storedToken && storedRole && storedUser && storedEmpId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -34,32 +35,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setRole(storedRole);
       setUserName(storedUser);
       setEmployeeId(Number(storedEmpId));
-
-      if (storedRole === "Employee") {
-        navigate("/employee-dashboard", { replace: true });
-      } else if (storedRole === "Manager") {
-        navigate("/manager-dashboard", { replace: true });
-      }
+      setEmployeeName(storedEmpName);
     }
     setLoading(false);
-  }, [navigate]);
+  }, []);
 
-  const login = (newToken: string, newRole: string, rememberMe: boolean, newUserName: string, newEmployeeId: number) => {
+  const login = (newToken: string, newRole: string, rememberMe: boolean, newUserName: string, newEmployeeId: number, newEmployeeName?: string) => {
     setToken(newToken);
     setRole(newRole);
     setUserName(newUserName);
     setEmployeeId(newEmployeeId);
+    setEmployeeName(newEmployeeName || null);
 
-    if (rememberMe) {
-      localStorage.setItem("token", newToken);
-      localStorage.setItem("role", newRole);
-      localStorage.setItem("userName", newUserName);
-      localStorage.setItem("employeeId", String(newEmployeeId));
-    } else {
-      sessionStorage.setItem("token", newToken);
-      sessionStorage.setItem("role", newRole);
-      sessionStorage.setItem("userName", newUserName);
-      sessionStorage.setItem("employeeId", String(newEmployeeId));
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem("token", newToken);
+    storage.setItem("role", newRole);
+    storage.setItem("userName", newUserName);
+    storage.setItem("employeeId", String(newEmployeeId));
+    if (newEmployeeName) {
+      storage.setItem("employeeName", newEmployeeName);
     }
   };
 
@@ -68,16 +62,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setRole(null);
     setUserName(null);
     setEmployeeId(null);
+    setEmployeeName(null);
     localStorage.clear();
     sessionStorage.clear();
-    navigate("/", { replace: true });
   };
 
   const isAuthenticated = !!token;
 
   return (
     <AuthContext.Provider
-      value={{ token, role, userName, employeeId, login, logout, loading, isAuthenticated }}
+      value={{ token, role, userName, employeeId, employeeName, login, logout, loading, isAuthenticated }}
     >
       {children}
     </AuthContext.Provider>

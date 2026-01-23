@@ -5,8 +5,7 @@ import MainLayout from "./layouts/MainLayout";
 import { lightTheme, darkTheme } from "./theme";
 import { useAuth } from "./context/AuthContext";
 import LoadingSpinner from "./components/LoadingSpinner";
-import FadeInSlideScale from "./components/FadeInSlideScale";
-import AppRoutes from "./routes/AppRoutes"; // 👈 import routes
+import AppRoutes from "./routes/AppRoutes";
 
 const App: React.FC = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -37,9 +36,7 @@ const App: React.FC = () => {
     <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
       <CssBaseline />
       <MainLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-        <FadeInSlideScale duration={700} offset={30} scaleFrom={0.92}>
-          <AppRoutes />
-        </FadeInSlideScale>
+        <AppRoutes />
       </MainLayout>
     </ThemeProvider>
   );
