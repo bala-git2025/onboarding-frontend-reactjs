@@ -13,6 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getEmployeeDetails, getEmployeeTasks, EmployeeTask } from "../../services/employeeService";
+import { formatDate, formatLongDate } from "../../utils/dateUtils";
 
 /* ------------------ TYPES ------------------ */
 interface Employee {
@@ -114,7 +115,7 @@ const EmployeeDashboard: React.FC = () => {
               <Typography><b>Name:</b> {employee.name}</Typography>
               <Typography><b>Employee ID:</b> {employee.id}</Typography>
               <Typography><b>Email:</b> {employee.email}</Typography>
-              <Typography><b>Date of Joining:</b> {new Date(employee.joiningDate).toLocaleDateString()}</Typography>
+              <Typography><b>Date of Joining:</b> {formatLongDate(employee.joiningDate)}</Typography>
               <Typography><b>Phone:</b> {employee.phone}</Typography>
               <Typography><b>Primary Skill:</b> {employee.primarySkill}</Typography>
             </Box>
@@ -154,7 +155,7 @@ const EmployeeDashboard: React.FC = () => {
                   </Typography>
 
                   <Typography variant="body2" color="text.secondary">
-                    Due Date: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'}
+                    Due Date: {formatDate(task.dueDate)}
                   </Typography>
                 </Box>
 

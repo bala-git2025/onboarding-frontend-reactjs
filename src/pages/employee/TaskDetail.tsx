@@ -30,6 +30,7 @@ import {
   addTaskComment,
   TaskDetail as ImportedTaskDetailType
 } from "../../services/employeeService";
+import { formatDate, formatDateTime } from "../../utils/dateUtils";
 
 interface CompleteTaskDetail extends ImportedTaskDetailType {
   status: string;
@@ -114,7 +115,7 @@ const TaskDetail: React.FC = () => {
     if (!newComment.trim() || !task || !taskId || !employeeId) return;
 
     try {
-
+      
       await addTaskComment(employeeId, parseInt(taskId), newComment);
 
       const newCommentObj = {
@@ -149,12 +150,6 @@ const TaskDetail: React.FC = () => {
       case "Complete": return "success";
       default: return "default";
     }
-  };
-
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   const formatCompletedDate = (dateString: string | null | undefined) => {
@@ -287,7 +282,7 @@ const TaskDetail: React.FC = () => {
                           <Box display="flex" justifyContent="space-between">
                             <Typography fontWeight="bold">{comment.author}</Typography>
                             <Typography variant="body2" color="text.secondary">
-                              {new Date(comment.timestamp).toLocaleString()}
+                              {formatDateTime(comment.timestamp)}
                             </Typography>
                           </Box>
                         }
