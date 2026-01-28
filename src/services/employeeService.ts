@@ -76,7 +76,8 @@ export const updateTaskStatus = async (employeeId: number, taskId: number, statu
   await API.put(`/employees/${employeeId}/tasks/${taskId}`, { status });
 };
 
-export const addTaskComment = async (employeeId: number, taskId: number, comment: string): Promise<TaskComment> => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const addTaskComment = async (employeeId: number, taskId: number, comment: string, displayName?: string): Promise<TaskComment> => {
   await API.post(`/employees/${employeeId}/tasks/${taskId}/comments`, { comment });
   
   return {

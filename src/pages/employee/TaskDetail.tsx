@@ -18,9 +18,10 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
+  useTheme
 } from "@mui/material";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowBack } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -45,14 +46,19 @@ interface CompleteTaskDetail extends ImportedTaskDetailType {
 
 const TaskDetail: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
-  const { employeeId } = useAuth();
+  const { employeeId, employeeName, userName } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [task, setTask] = useState<CompleteTaskDetail | null>(null);
   const [status, setStatus] = useState<string>("");
   const [newComment, setNewComment] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [updating, setUpdating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const theme = useTheme();
+
+  const isEditable = searchParams.get('edit') === 'true';
+  const displayName = employeeName || userName || "Guest";
 
   useEffect(() => {
     const fetchTaskDetail = async () => {
@@ -64,7 +70,13 @@ const TaskDetail: React.FC = () => {
 
       try {
         const taskData = await getTaskDetail(employeeId, parseInt(taskId)) as CompleteTaskDetail;
-        setTask(taskData);
+        
+        const transformedComments = taskData.comments.map(comment => ({
+          ...comment,
+          author: comment.author === "User" ? displayName : comment.author
+        }));
+        
+        setTask({ ...taskData, comments: transformedComments });
         setStatus(taskData.status);
         setError(null);
       } catch (err: unknown) {
@@ -80,7 +92,7 @@ const TaskDetail: React.FC = () => {
     };
 
     fetchTaskDetail();
-  }, [taskId, employeeId]);
+  }, [taskId, employeeId, displayName]);
 
   const handleStatusUpdate = async () => {
     if (!task || !taskId || !employeeId) return;
@@ -102,12 +114,21 @@ const TaskDetail: React.FC = () => {
     if (!newComment.trim() || !task || !taskId || !employeeId) return;
 
     try {
-     
+
       await addTaskComment(employeeId, parseInt(taskId), newComment);
-      
-      const updatedTaskData = await getTaskDetail(employeeId, parseInt(taskId)) as CompleteTaskDetail;
-      setTask(updatedTaskData);
-      
+
+      const newCommentObj = {
+        id: Date.now(),
+        text: newComment,
+        author: displayName,
+        timestamp: new Date().toISOString()
+      };
+
+      setTask({
+        ...task,
+        comments: [...task.comments, newCommentObj]
+      });
+
       setNewComment("");
       setError(null);
     } catch (error) {
@@ -150,7 +171,7 @@ const TaskDetail: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3, backgroundColor: "#f4f6fb", minHeight: "100vh" }}>
+    <Box sx={{ p: 3, backgroundColor: theme.palette.background.default, minHeight: "100vh" }}>
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
@@ -159,7 +180,7 @@ const TaskDetail: React.FC = () => {
 
       {!error && task && (
         <>
-          <Typography variant="h4" fontWeight="bold" mb={2}>
+          <Typography variant="h5" fontWeight="bold" mb={2}>
             Task Details
           </Typography>
 
@@ -177,21 +198,21 @@ const TaskDetail: React.FC = () => {
             <CardContent>
               <Box display="flex" flexWrap="wrap" gap={4}>
                 <Box flexGrow={1} sx={{ minWidth: '250px' }}>
-                  <Typography variant="body2" color="text.secondary">Due Date</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'bold' }}>Due Date</Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>{formatDate(task.dueDate)}</Typography>
 
-                  <Typography variant="body2" color="text.secondary">Created On</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'bold' }}>Created On</Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>{formatDate(task.createdOn)}</Typography>
 
-                  <Typography variant="body2" color="text.secondary">Completed On</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'bold' }}>Completed On</Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>{formatCompletedDate(task.completedOn)}</Typography>
                 </Box>
 
                 <Box flexGrow={1} sx={{ minWidth: '250px' }}>
-                  <Typography variant="body2" color="text.secondary">Created By</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'bold' }}>Created By</Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>{task.createdBy || 'N/A'}</Typography>
 
-                  <Typography variant="body2" color="text.secondary">Point of Contact</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'bold' }}>Point of Contact</Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>{task.pointOfContact}</Typography>
                 </Box>
               </Box>
@@ -205,37 +226,42 @@ const TaskDetail: React.FC = () => {
 
               <Divider sx={{ my: 3 }} />
 
-              <Box 
-                display="flex" 
-                flexWrap="wrap" 
-                alignItems="center" 
+              <Box
+                display="flex"
+                flexWrap="wrap"
+                alignItems="center"
                 justifyContent="space-between"
                 gap={2}
               >
                 <Box sx={{ flexGrow: 1 }}>
                   <FormControl fullWidth variant="outlined">
-                    <InputLabel id="status-select-label">Update Status</InputLabel>
+                    <InputLabel id="status-select-label"><strong>Update Task Status</strong></InputLabel>
                     <Select
                       labelId="status-select-label"
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
-                      label="Update Status"
+                      label="Update Task Status"
+                      disabled={!isEditable}
                     >
                       <MenuItem value="New">New</MenuItem>
                       <MenuItem value="In Progress">In Progress</MenuItem>
                       <MenuItem value="Sent for Review">Sent for Review</MenuItem>
                     </Select>
                   </FormControl>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Note: Only New, In Progress and Sent for Review are available for Employee updates.
-              </Typography>
+                  {isEditable && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      <Box component="span" sx={{ color: 'red', fontWeight: 'bold' }}>Note:</Box> Employees can only update the task status to <strong>New</strong>, <strong>In Progress</strong>, or <strong>Sent for Review</strong>.
+                    </Typography>
+                  )}
                 </Box>
-                <Box>
-                  <Button variant="outlined" onClick={handleCancel} sx={{ mr: 2 }}>Cancel</Button>
-                  <Button variant="contained" color="primary" onClick={handleStatusUpdate} disabled={updating || status === task.status}>
-                    {updating ? "Saving..." : "Save Changes"}
-                  </Button>
-                </Box>
+                {isEditable && (
+                  <Box>
+                    <Button variant="outlined" onClick={handleCancel} sx={{ mr: 2 }}>Cancel</Button>
+                    <Button variant="contained" color="primary" onClick={handleStatusUpdate} disabled={updating || status === task.status}>
+                      {updating ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </Box>
+                )}
               </Box>
             </CardContent>
           </Card>
@@ -248,9 +274,9 @@ const TaskDetail: React.FC = () => {
               ) : (
                 <List sx={{ mb: 2 }}>
                   {task.comments.map((comment) => (
-                    <ListItem 
-                      key={`${comment.id}-${comment.timestamp}`} 
-                      alignItems="flex-start" 
+                    <ListItem
+                      key={`${comment.id}-${comment.timestamp}`}
+                      alignItems="flex-start"
                       sx={{ px: 0 }}
                     >
                       <Avatar sx={{ mr: 2, bgcolor: "primary.main" }}>
@@ -273,7 +299,7 @@ const TaskDetail: React.FC = () => {
               )}
 
               <Divider sx={{ my: 2 }} />
-              
+
               <Box mb={2}>
                 <TextField
                   fullWidth
@@ -282,25 +308,30 @@ const TaskDetail: React.FC = () => {
                   placeholder="Add a comment..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
+                  disabled={!isEditable}
                 />
-                <Box display="flex" justifyContent="flex-end" mt={1}>
-                  <Button variant="contained" onClick={handleAddComment} disabled={!newComment.trim()}>
-                    Add Comment
-                  </Button>
-                </Box>
+                {isEditable && (
+                  <Box display="flex" justifyContent="flex-end" mt={1}>
+                    <Button variant="contained" onClick={handleAddComment} disabled={!newComment.trim()}>
+                      Add Comment
+                    </Button>
+                  </Box>
+                )}
               </Box>
             </CardContent>
           </Card>
 
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              variant="outlined"
-              startIcon={<ArrowBack />}
-              onClick={() => navigate("/employee-dashboard")}
-            >
-              Back to Dashboard
-            </Button>
-          </Box>
+          {!isEditable && (
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="outlined"
+                startIcon={<ArrowBack />}
+                onClick={() => navigate("/employee-dashboard")}
+              >
+                Back to Dashboard
+              </Button>
+            </Box>
+          )}
         </>
       )}
     </Box>

@@ -7,12 +7,13 @@ import {
   Chip,
   Button,
   Divider,
-  Alert
+  Alert,
+  useTheme
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getEmployeeDetails, getEmployeeTasks, EmployeeTask } from "../../services/employeeService";
- 
+
 /* ------------------ TYPES ------------------ */
 interface Employee {
   id: number;
@@ -22,7 +23,7 @@ interface Employee {
   joiningDate: string;
   primarySkill: string;
 }
- 
+
 /* ------------------ STATUS COLOR ------------------ */
 const getStatusColor = (
   status: string
@@ -41,7 +42,7 @@ const getStatusColor = (
       return "default";
   }
 };
- 
+
 const EmployeeDashboard: React.FC = () => {
   const { employeeId } = useAuth();
   const navigate = useNavigate();
@@ -49,7 +50,8 @@ const EmployeeDashboard: React.FC = () => {
   const [tasks, setTasks] = useState<EmployeeTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
- 
+  const theme = useTheme();
+
   /* ------------------ LOAD DATA ------------------ */
   useEffect(() => {
     const loadDashboard = async () => {
@@ -59,11 +61,11 @@ const EmployeeDashboard: React.FC = () => {
         setLoading(false);
         return;
       }
- 
+
       try {
         const empData = await getEmployeeDetails(employeeId);
         const taskData = await getEmployeeTasks(employeeId);
- 
+
         setEmployee(empData);
         setTasks(taskData);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,14 +76,14 @@ const EmployeeDashboard: React.FC = () => {
         setLoading(false);
       }
     };
- 
+
     loadDashboard();
   }, [employeeId]);
- 
+
   if (loading) {
     return <Typography sx={{ p: 3 }}>Loading dashboard...</Typography>;
   }
- 
+
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
@@ -92,10 +94,10 @@ const EmployeeDashboard: React.FC = () => {
       </Box>
     );
   }
- 
+
   return (
-    <Box sx={{ p: 3, backgroundColor: "#f5f7fb", minHeight: "100vh" }}>
- 
+    <Box sx={{ p: 3, backgroundColor: theme.palette.background.default, minHeight: "100vh" }}>
+
       {/* ================= SECTION 1: PERSONAL DETAILS ================= */}
       {employee && (
         <Card sx={{ mb: 3 }}>
@@ -103,7 +105,7 @@ const EmployeeDashboard: React.FC = () => {
             <Typography variant="h6" mb={2}>
               Personal Details
             </Typography>
- 
+
             <Box
               display="grid"
               gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
@@ -119,29 +121,29 @@ const EmployeeDashboard: React.FC = () => {
           </CardContent>
         </Card>
       )}
- 
+
       {/* ================= SECTION 2: TASK LIST ================= */}
       <Card>
         <CardContent>
           <Typography variant="h6" mb={2}>
             Task List
           </Typography>
- 
+
           {tasks.length === 0 && (
             <Typography color="text.secondary">
               No tasks assigned.
             </Typography>
           )}
- 
+
           {tasks.map((task) => (
             <Box
               key={task.id}
               sx={{
                 mb: 2,
-                p: 1,
+                p: 2,
                 borderRadius: 1,
                 cursor: "pointer",
-                '&:hover': { backgroundColor: "#f0f0f0" }
+                '&:hover': { backgroundColor: theme.palette.action.hover }
               }}
               onClick={() => navigate(`/task/${task.id}`)}
             >
@@ -150,12 +152,12 @@ const EmployeeDashboard: React.FC = () => {
                   <Typography fontWeight="bold">
                     {task.name}
                   </Typography>
- 
+
                   <Typography variant="body2" color="text.secondary">
                     Due Date: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'}
                   </Typography>
                 </Box>
- 
+
                 <Box display="flex" alignItems="center" gap={2}>
                   <Chip
                     label={task.status}
@@ -167,14 +169,14 @@ const EmployeeDashboard: React.FC = () => {
                     variant="outlined"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/task/${task.id}`);
+                      navigate(`/task/${task.id}?edit=true`);
                     }}
                   >
                     Edit
                   </Button>
                 </Box>
               </Box>
- 
+
               <Divider sx={{ mt: 2 }} />
             </Box>
           ))}
@@ -183,5 +185,5 @@ const EmployeeDashboard: React.FC = () => {
     </Box>
   );
 };
- 
+
 export default EmployeeDashboard;
