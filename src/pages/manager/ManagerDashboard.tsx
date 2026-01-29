@@ -115,7 +115,7 @@ const ManagerDashboard: React.FC = () => {
               {/* ROW 1: MEMBERS + COMPLETED */}
               <Box display="flex" gap={2} mb={2}>
                 <Box
-                  onClick={() => navigate(`/Team-DashBoard/id=${team.teamId}`)}
+                  onClick={() => navigate(`/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`)}
                   sx={statusBox("rgb(218, 240, 161)")}
                 >
                   <Box
@@ -133,7 +133,7 @@ const ManagerDashboard: React.FC = () => {
 
                 <Box
                   onClick={() =>
-                    navigate(`/Team-DashBoard/id=${team.teamId}`)
+                    navigate(`/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`)
                   }
                   sx={statusBox("rgb(220, 231, 190)")}
                 > <Box
@@ -154,7 +154,7 @@ const ManagerDashboard: React.FC = () => {
               <Box display="flex" gap={2} mb={2}>
                 <Box
                   onClick={() =>
-                    navigate(`/Team-Dashboard/id=${team.teamId}`)
+                    navigate(`/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`)
                   }
                   sx={statusBox("#daebae")}
                 ><Box
@@ -172,7 +172,7 @@ const ManagerDashboard: React.FC = () => {
                 <Box
                  onClick={(e) => {
                       e.stopPropagation();
-                    navigate(`/Team-DashBoard/id=${team.teamId}`)
+                    navigate(`/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`)
                   } }
                   sx={statusBox("#f8d7da")}>
                   <Box
@@ -193,7 +193,7 @@ const ManagerDashboard: React.FC = () => {
                 <Button
                   variant="contained"
                   component={Link}
-                  to={`/Team-DashBoard/id=${team.teamId}`}
+                  to={`/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`}
                   fullWidth
                   sx={{
                     borderRadius: 2,
