@@ -7,8 +7,9 @@ import {
   Typography,
   CircularProgress,
   Avatar,
+  Button,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // 🔹 ICONS
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
@@ -55,7 +56,7 @@ const ManagerDashboard: React.FC = () => {
               members: 0,
               completed: 0,
               pending: 0,
-              Overdue:0,
+              Overdue: 0,
             };
           }
 
@@ -65,8 +66,8 @@ const ManagerDashboard: React.FC = () => {
             grouped[item.teamId].completed += 1;
           } else if (item.status === "Pending") {
             grouped[item.teamId].pending += 1;
-          }else if (item.status === "Overdue"){
-            grouped[item.teamId].Overdue +=1;
+          } else if (item.status === "Overdue") {
+            grouped[item.teamId].Overdue += 1;
           }
         });
 
@@ -136,59 +137,79 @@ const ManagerDashboard: React.FC = () => {
                   }
                   sx={statusBox("rgb(220, 231, 190)")}
                 > <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    gap={1}
-                    sx={{ maxWidth: "100%" }}
-                  >
-                  <CheckCircleOutlineOutlinedIcon sx={{ color: "#2E7D32" }} />
-                  <Typography variant="body2">Completed</Typography>
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  gap={1}
+                  sx={{ maxWidth: "100%" }}
+                >
+                    <CheckCircleOutlineOutlinedIcon sx={{ color: "#2E7D32" }} />
+                    <Typography variant="body2">Completed</Typography>
                   </Box>
                   <Typography variant="h6">{team.completed}</Typography>
                 </Box>
               </Box>
 
               {/* ROW 2: PENDING*/}
-             <Box display="flex" gap={2} mb={2}>
+              <Box display="flex" gap={2} mb={2}>
                 <Box
                   onClick={() =>
-                    navigate(`/Team-DashBoard/id=${team.teamId}`)
+                    navigate(`/Team-Dashboard/id=${team.teamId}`)
                   }
                   sx={statusBox("#daebae")}
                 ><Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    gap={1}
-                    sx={{ maxWidth: "100%" }}
-                  >
-                  <AccessTimeOutlinedIcon sx={{ color: "#F9A825" }} />
-                  <Typography variant="body2">Pending</Typography>
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  gap={1}
+                  sx={{ maxWidth: "100%" }}
+                >
+                    <AccessTimeOutlinedIcon sx={{ color: "#F9A825" }} />
+                    <Typography variant="body2">Pending</Typography>
                   </Box>
                   <Typography variant="h6">{team.pending}</Typography>
                 </Box>
-            <Box
-                  onClick={() =>
-                    navigate(`/Team-DashBoard/id=${team.teamId}`)
-                  }
-                sx={statusBox("#f8d7da")}>
                 <Box
+                 onClick={(e) => {
+                      e.stopPropagation();
+                    navigate(`/Team-DashBoard/id=${team.teamId}`)
+                  } }
+                  sx={statusBox("#f8d7da")}>
+                  <Box
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
                     gap={1}
                     sx={{ maxWidth: "100%" }}
                   >
-                  <ErrorOutline sx={{ color: "#C62828" }} />
-                  <Typography variant="body2">Overdue</Typography>
+                    <ErrorOutline sx={{ color: "#C62828" }} />
+                    <Typography variant="body2">Overdue</Typography>
                   </Box>
                   <Typography variant="h6">{team.Overdue}</Typography>
                 </Box>
-              </Box>         
+              </Box>
+              {/* FULL WIDTH VIEW BUTTON */}
+              <Box mt={1}>
+                <Button
+                  variant="contained"
+                  component={Link}
+                  to={`/Team-DashBoard/id=${team.teamId}`}
+                  fullWidth
+                  sx={{
+                    borderRadius: 2,
+                    py: 1.2,
+                    fontWeight: 600,
+                  }}
+                >
+                  View Team Members
+                </Button>
+              </Box>
+
+
             </CardContent>
           </Card>
         ))}
+
       </Box>
     </Box>
   );
