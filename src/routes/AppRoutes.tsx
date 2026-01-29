@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Login from "../pages/login/Login";
 import EmployeeDashboard from "../pages/employee/EmployeeDashboard";
 import ManagerDashboard from "../pages/manager/ManagerDashboard";
-import TeamDashboard from "../pages/manager/TeamDashboard";
+import TeamDashboard from "../pages/manager/TeamDashBoard";
 import ProtectedRoute from "./ProtectedRoute";
 import TaskDetail from "../pages/employee/TaskDetail";
  
@@ -39,7 +39,7 @@ const AppRoutes: React.FC = () => (
     /> 
 
     <Route
-      path="/Team-DashBoard/id=:teamId"
+      path="/Team-DashBoard/id/:teamId/teamName/:teamName"
       element={
         <ProtectedRoute allowedRole="Manager">
           <TeamDashboard />
