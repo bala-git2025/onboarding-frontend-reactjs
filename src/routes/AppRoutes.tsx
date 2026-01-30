@@ -3,10 +3,11 @@ import { Routes, Route } from "react-router-dom";
 import Login from "../pages/login/Login";
 import EmployeeDashboard from "../pages/employee/EmployeeDashboard";
 import ManagerDashboard from "../pages/manager/ManagerDashboard";
-import TeamDashboard from "../pages/manager/TeamDashBoard";
+import TeamDashboard from "../pages/manager/teamDashBoard";
 import ProtectedRoute from "./ProtectedRoute";
 import TaskDetail from "../pages/employee/TaskDetail";
 import Employee from "../pages/manager/EmployeeDetail";
+import AddTask from "../pages/manager/AddTask";
  
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -57,7 +58,14 @@ const AppRoutes: React.FC = () => (
       }
     /> 
 
-    
+    <Route
+      path="/manager-dashboard/employee/:employeeId/add-task"
+      element={
+        <ProtectedRoute allowedRole={["Manager"]}>
+          <AddTask />
+        </ProtectedRoute>
+      }
+    />
     <Route path="*" element={<Login />} />
   </Routes>
 );
