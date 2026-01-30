@@ -7,8 +7,6 @@ import {
   Typography,
   TextField,
   Button,
-  Checkbox,
-  FormControlLabel,
   Alert,
 } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
@@ -17,7 +15,6 @@ import * as AuthService from "../../services/authService";
 const Login: React.FC = () => {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -32,21 +29,19 @@ const Login: React.FC = () => {
     }
 
     try {
-      setLoading(true);   
+      setLoading(true);
       const response = await AuthService.login(userName, password);
 
       // response has { token, role, userName, employeeId, employeeName }
       login(
         response.token,
         response.role,
-        rememberMe,
         response.userName,
         response.employeeId,
         response.employeeName
       );
 
       navigate(response.role === "Employee" ? "/employee-dashboard" : "/manager-dashboard");
-
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -99,16 +94,6 @@ const Login: React.FC = () => {
               variant="outlined"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-              }
-              label="Remember me"
-              sx={{ mt: 1 }}
             />
             <Button
               fullWidth

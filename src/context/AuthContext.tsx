@@ -1,4 +1,13 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  LinearProgress,
+  Typography,
+} from "@mui/material";
 
 interface AuthContextType {
   token: string | null;
@@ -6,7 +15,7 @@ interface AuthContextType {
   userName: string | null;
   employeeId: number | null;
   employeeName: string | null;
-  login: (token: string, role: string, rememberMe: boolean, userName: string, employeeId: number, employeeName?: string) => void;
+  login: (token: string, role: string, userName: string, employeeId: number, employeeName?: string) => void;
   logout: () => void;
   loading: boolean;
   isAuthenticated: boolean;
@@ -21,16 +30,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [employeeId, setEmployeeId] = useState<number | null>(null);
   const [employeeName, setEmployeeName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showWarning, setShowWarning] = useState(false);
+  const [countdown, setCountdown] = useState(60); // countdown in seconds
+
+  const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
+  const warningTimer = useRef<NodeJS.Timeout | null>(null);
+  const countdownInterval = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token") || sessionStorage.getItem("token");
-    const storedRole = localStorage.getItem("role") || sessionStorage.getItem("role");
-    const storedUser = localStorage.getItem("userName") || sessionStorage.getItem("userName");
-    const storedEmpId = localStorage.getItem("employeeId") || sessionStorage.getItem("employeeId");
-    const storedEmpName = localStorage.getItem("employeeName") || sessionStorage.getItem("employeeName");
+    const storedToken = localStorage.getItem("token");
+    const storedRole = localStorage.getItem("role");
+    const storedUser = localStorage.getItem("userName");
+    const storedEmpId = localStorage.getItem("employeeId");
+    const storedEmpName = localStorage.getItem("employeeName");
 
     if (storedToken && storedRole && storedUser && storedEmpId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToken(storedToken);
       setRole(storedRole);
       setUserName(storedUser);
@@ -40,21 +54,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
-  const login = (newToken: string, newRole: string, rememberMe: boolean, newUserName: string, newEmployeeId: number, newEmployeeName?: string) => {
+  const resetInactivityTimer = () => {
+    if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+    if (warningTimer.current) clearTimeout(warningTimer.current);
+    if (countdownInterval.current) clearInterval(countdownInterval.current);
+
+    // Show warning at 9 minutes
+    warningTimer.current = setTimeout(() => {
+      setShowWarning(true);
+      setCountdown(60); // reset countdown to 60 seconds
+      countdownInterval.current = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval.current!);
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }, 9 * 30 * 1000);
+
+    // Logout at 10 minutes
+    inactivityTimer.current = setTimeout(() => {
+      logout();
+    }, 10 * 60 * 1000);
+  };
+
+  useEffect(() => {
+    if (token) {
+      const events = ["mousemove", "keydown", "click", "scroll"];
+      events.forEach((event) => window.addEventListener(event, resetInactivityTimer));
+      resetInactivityTimer();
+
+      return () => {
+        events.forEach((event) => window.removeEventListener(event, resetInactivityTimer));
+        if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+        if (warningTimer.current) clearTimeout(warningTimer.current);
+        if (countdownInterval.current) clearInterval(countdownInterval.current);
+      };
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  const login = (newToken: string, newRole: string, newUserName: string, newEmployeeId: number, newEmployeeName?: string) => {
     setToken(newToken);
     setRole(newRole);
     setUserName(newUserName);
     setEmployeeId(newEmployeeId);
     setEmployeeName(newEmployeeName || null);
 
-    const storage = rememberMe ? localStorage : sessionStorage;
-    storage.setItem("token", newToken);
-    storage.setItem("role", newRole);
-    storage.setItem("userName", newUserName);
-    storage.setItem("employeeId", String(newEmployeeId));
+    localStorage.setItem("token", newToken);
+    localStorage.setItem("role", newRole);
+    localStorage.setItem("userName", newUserName);
+    localStorage.setItem("employeeId", String(newEmployeeId));
     if (newEmployeeName) {
-      storage.setItem("employeeName", newEmployeeName);
+      localStorage.setItem("employeeName", newEmployeeName);
     }
+
+    resetInactivityTimer();
   };
 
   const logout = () => {
@@ -64,7 +120,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setEmployeeId(null);
     setEmployeeName(null);
     localStorage.clear();
-    sessionStorage.clear();
+
+    if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+    if (warningTimer.current) clearTimeout(warningTimer.current);
+    if (countdownInterval.current) clearInterval(countdownInterval.current);
+    setShowWarning(false);
   };
 
   const isAuthenticated = !!token;
@@ -74,6 +134,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{ token, role, userName, employeeId, employeeName, login, logout, loading, isAuthenticated }}
     >
       {children}
+
+      <Dialog
+        open={showWarning}
+        onClose={() => setShowWarning(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 2,
+            minWidth: 350,
+            boxShadow: 6,
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: "bold", textAlign: "center", color: "primary.main" }}>
+          ⚠️ Session Expiring Soon
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: "center" }}>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            You will be logged out in <strong>{countdown}</strong> seconds due to inactivity.
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={(countdown / 60) * 100}
+            sx={{ height: 8, borderRadius: 5 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", gap: 2, mt: 2 }}>
+          <Button
+            onClick={() => {
+              setShowWarning(false);
+              resetInactivityTimer(); // extend session
+            }}
+            variant="contained"
+            color="primary"
+            sx={{ borderRadius: 2, px: 3 }}
+          >
+            Stay Logged In
+          </Button>
+          <Button
+            onClick={logout}
+            variant="outlined"
+            color="secondary"
+            sx={{ borderRadius: 2, px: 3 }}
+          >
+            Logout Now
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AuthContext.Provider>
   );
 };
