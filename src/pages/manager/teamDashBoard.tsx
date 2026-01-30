@@ -1,43 +1,59 @@
-import { Box, Typography } from "@mui/material";
+import {
+  Box,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Toolbar,
+  Typography,
+  Button,
+} from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import { ArrowBack } from "@mui/icons-material";
+import { Link as MuiLink } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 
-interface Team{
-    employeeId : number;
-    teamId : number;
-    task: number;
-    employeeName : string;
-    status : string;
-    teamName : string;
-    taskName : string;
+interface Team {
+  employeeId: number;
+  name: string;
+  status: string;
 }
 
-interface teamDetails{
-    employeeId : number;
-    employeeName : string;
-    totalTasks: number;
-    completedTask: number;
-    pendingTask : number;
-    overDueTask : number;
+interface TeamDetails {
+  employeeId: number;
+  employeeName: string;
+  totalTasks: number;
+  completedTask: number;
+  pendingTask: number;
+  overDueTask: number;
 }
 
 const TeamDashboard: React.FC = () => {
-    const navigate = useNavigate();
-    const { teamId,teamName } = useParams<{ teamId: string,teamName : string }>();
-    const [teams, setTeams] = useState<teamDetails[]>([]);
-    const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { teamId } = useParams<{ teamId: string }>();
+  const [teams, setTeams] = useState<TeamDetails[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        axios.get(`http://localhost:5000/manager/team/${teamId}`)
-        .then((res) => {
-             const teamList: Team[] = res.data.teamList || [];
-             const grouped: Record<number, teamDetails> = {};
-            teamList.forEach((item) => {
-          if (!grouped[item.teamId]) {
-            grouped[item.teamId] = {
-              employeeId : item.employeeId,
-              employeeName: item.employeeName,
+  useEffect(() => {
+    if (!teamId) return;
+
+    axios
+      .get(`http://localhost:5000/manager/team/${teamId}`)
+      .then((res) => {
+        const teamList: Team[] = res.data.teamList || [];
+        const grouped: Record<number, TeamDetails> = {};
+
+        teamList.forEach((item) => {
+          if (!grouped[item.employeeId]) {
+            grouped[item.employeeId] = {
+              employeeId: item.employeeId,
+              employeeName: item.name,
               totalTasks: 0,
               completedTask: 0,
               pendingTask: 0,
@@ -45,25 +61,122 @@ const TeamDashboard: React.FC = () => {
             };
           }
 
-          grouped[item.teamId].totalTasks += 1;
+          grouped[item.employeeId].totalTasks += 1;
 
           if (item.status === "Completed") {
-            grouped[item.teamId].completedTask += 1;
+            grouped[item.employeeId].completedTask += 1;
           } else if (item.status === "Pending") {
-            grouped[item.teamId].pendingTask += 1;
+            grouped[item.employeeId].pendingTask += 1;
           } else if (item.status === "Overdue") {
-            grouped[item.teamId].overDueTask += 1;
+            grouped[item.employeeId].overDueTask += 1;
           }
         });
-             
-        });
-    },[]);
+
+        setTeams(Object.values(grouped));
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [teamId]);
 
   return (
-    <Box p={3}>
-      <Typography variant="h5" mb={2}>
-        Team ID: ${teamName}
-      </Typography>
+    <Box>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Typography variant="h5">Team Dashboard</Typography>
+        <Button variant="outlined" startIcon={<ArrowBack />} onClick={() => navigate("/manager-dashboard")}>
+          Back to Dashboard
+        </Button>
+      </Toolbar>
+
+      <TableContainer component={Paper}>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>
+                Employee Name
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>
+                Total Tasks
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>
+                Completed
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>
+                Pending
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>
+                Overdue
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>
+                Action
+              </TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {teams.map((emp) => (
+              <TableRow key={emp.employeeId} hover>
+                <TableCell align="center">
+                  <MuiLink
+                    component={RouterLink}
+                    to={`/Employee/id/${emp.employeeId}`}
+                    underline="hover"
+                    sx={{ fontWeight: 500 }}
+                  >
+                  {emp.employeeName} </MuiLink></TableCell>
+                <TableCell align="center" >{emp.totalTasks}</TableCell>
+                <TableCell align="center" sx = {{
+                  fontWeight: 500,
+                  color: "rgb(103, 217, 171)"
+                }}>{emp.completedTask}</TableCell>
+                <TableCell align="center" sx = {{
+                  fontWeight: 500,
+                  color: "rgb(241, 201, 99)"
+                }}>{emp.pendingTask}</TableCell>
+                <TableCell align="center" sx = {{
+                  fontWeight: 500,
+                  color: "rgb(248, 47, 47)"
+                }}>{emp.overDueTask}</TableCell>
+                <TableCell>
+                  <Button
+                    component={Link}
+                    to={`/Employee/id/${emp.employeeId}`}
+                    variant="outlined"
+                    size="small"
+                    startIcon={<EditOutlinedIcon />}
+                    sx={{
+                      textTransform: "none",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      px: 1.5,
+                    }}
+                  >
+                    Edit
+                  </Button>
+
+                </TableCell>
+              </TableRow>
+            ))}
+
+            {!loading && teams.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  No data available
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBack />}
+          onClick={() => navigate("/manager-dashboard")}
+        >
+          Back to Dashboard
+        </Button>
+      </Box>
     </Box>
   );
 };
