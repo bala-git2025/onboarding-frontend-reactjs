@@ -4,15 +4,15 @@ import { useAuth } from "../context/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRole: "Employee" | "Manager";
+  allowedRole: Array<"Employee" | "Manager">;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRole }) => {
-  const { token, role } = useAuth();
+  const { token, role } = useAuth() as { token: string | null; role: "Employee" | "Manager" | null };
 
   if (!token) return <Navigate to="/" replace />;
 
-  if (role !== allowedRole) {
+ if (!role || !allowedRole.includes(role)) {
     return role === "Employee"
       ? <Navigate to="/employee-dashboard" replace />
       : <Navigate to="/manager-dashboard" replace />;
