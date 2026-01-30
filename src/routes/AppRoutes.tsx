@@ -9,6 +9,7 @@ import TaskDetail from "../pages/employee/TaskDetail";
 import Employee from "../pages/manager/EmployeeDetail";
 import AddTask from "../pages/manager/AddTask";
 import { useAuth } from "../context/AuthContext";
+import Profile from "../pages/login/Profile";
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated, role } = useAuth();
@@ -83,6 +84,15 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute allowedRole={["Manager"]}>
             <AddTask />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute allowedRole={["Employee", "Manager"]}>
+            <Profile />
           </ProtectedRoute>
         }
       />
