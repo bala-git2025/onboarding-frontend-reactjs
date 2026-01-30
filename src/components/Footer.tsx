@@ -15,8 +15,7 @@ const Footer: React.FC = () => {
           theme.palette.mode === "light"
             ? "#f5f5f5"
             : theme.palette.background.paper,
-        borderTop: (theme) =>
-          `1px solid ${theme.palette.divider}`,
+        borderTop: (theme) => `1px solid ${theme.palette.divider}`,
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
@@ -24,7 +23,11 @@ const Footer: React.FC = () => {
       }}
     >
       {/* Left side */}
-      <Typography variant="body2" color="text.secondary">
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{ fontWeight: 500 }}
+      >
         © {new Date().getFullYear()} — Developed by Accenture
       </Typography>
 
@@ -34,7 +37,7 @@ const Footer: React.FC = () => {
           href="#"
           underline="hover"
           color="text.secondary"
-          sx={{ "&:hover": { color: "primary.main" } }}
+          sx={{ "&:hover": { color: "primary.main", fontWeight: 600 } }}
         >
           Privacy
         </Link>
@@ -42,7 +45,7 @@ const Footer: React.FC = () => {
           href="#"
           underline="hover"
           color="text.secondary"
-          sx={{ "&:hover": { color: "primary.main" } }}
+          sx={{ "&:hover": { color: "primary.main", fontWeight: 600 } }}
         >
           Terms
         </Link>
@@ -50,7 +53,7 @@ const Footer: React.FC = () => {
           href="#"
           underline="hover"
           color="text.secondary"
-          sx={{ "&:hover": { color: "primary.main" } }}
+          sx={{ "&:hover": { color: "primary.main", fontWeight: 600 } }}
         >
           Contact
         </Link>

@@ -15,7 +15,13 @@ interface AuthContextType {
   userName: string | null;
   employeeId: number | null;
   employeeName: string | null;
-  login: (token: string, role: string, userName: string, employeeId: number, employeeName?: string) => void;
+  login: (
+    token: string,
+    role: string,
+    userName: string,
+    employeeId: number,
+    employeeName?: string
+  ) => void;
   logout: () => void;
   loading: boolean;
   isAuthenticated: boolean;
@@ -33,9 +39,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [showWarning, setShowWarning] = useState(false);
   const [countdown, setCountdown] = useState(60); // countdown in seconds
 
-  const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
-  const warningTimer = useRef<NodeJS.Timeout | null>(null);
-  const countdownInterval = useRef<NodeJS.Timeout | null>(null);
+  const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -54,10 +60,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
-  const resetInactivityTimer = () => {
+  const clearAllTimers = () => {
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
     if (warningTimer.current) clearTimeout(warningTimer.current);
     if (countdownInterval.current) clearInterval(countdownInterval.current);
+  };
+
+  const resetInactivityTimer = () => {
+    clearAllTimers();
 
     // Show warning at 9 minutes
     warningTimer.current = setTimeout(() => {
@@ -71,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return prev - 1;
         });
       }, 1000);
-    }, 9 * 30 * 1000);
+    }, 9 * 60 * 1000); // corrected to 9 minutes
 
     // Logout at 10 minutes
     inactivityTimer.current = setTimeout(() => {
@@ -87,15 +97,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return () => {
         events.forEach((event) => window.removeEventListener(event, resetInactivityTimer));
-        if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
-        if (warningTimer.current) clearTimeout(warningTimer.current);
-        if (countdownInterval.current) clearInterval(countdownInterval.current);
+        clearAllTimers();
       };
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  const login = (newToken: string, newRole: string, newUserName: string, newEmployeeId: number, newEmployeeName?: string) => {
+  const login = (
+    newToken: string,
+    newRole: string,
+    newUserName: string,
+    newEmployeeId: number,
+    newEmployeeName?: string
+  ) => {
     setToken(newToken);
     setRole(newRole);
     setUserName(newUserName);
@@ -120,10 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setEmployeeId(null);
     setEmployeeName(null);
     localStorage.clear();
-
-    if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
-    if (warningTimer.current) clearTimeout(warningTimer.current);
-    if (countdownInterval.current) clearInterval(countdownInterval.current);
+    clearAllTimers();
     setShowWarning(false);
   };
 
@@ -131,7 +142,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider
-      value={{ token, role, userName, employeeId, employeeName, login, logout, loading, isAuthenticated }}
+      value={{
+        token,
+        role,
+        userName,
+        employeeId,
+        employeeName,
+        login,
+        logout,
+        loading,
+        isAuthenticated,
+      }}
     >
       {children}
 
@@ -147,12 +168,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: "bold", textAlign: "center", color: "primary.main" }}>
+        <DialogTitle
+          sx={{ fontWeight: "bold", textAlign: "center", color: "primary.main" }}
+        >
           ⚠️ Session Expiring Soon
         </DialogTitle>
         <DialogContent sx={{ textAlign: "center" }}>
           <Typography variant="body1" sx={{ mb: 2 }}>
-            You will be logged out in <strong>{countdown}</strong> seconds due to inactivity.
+            You will be logged out in <strong>{countdown}</strong> seconds due to
+            inactivity.
           </Typography>
           <LinearProgress
             variant="determinate"

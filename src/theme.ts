@@ -1,6 +1,6 @@
 import { createTheme } from "@mui/material/styles";
 
-const shared = {
+const sharedOptions = {
   typography: {
     fontFamily: "Roboto, Helvetica, Arial, sans-serif",
     h1: { fontWeight: 600 },
@@ -17,9 +17,10 @@ const shared = {
           borderRadius: 8,
           textTransform: "none",
           fontWeight: 500,
-          transition: "background-color 0.4s ease, color 0.4s ease, transform 0.2s ease",
+          transition:
+            "background-color 0.4s ease, color 0.4s ease, transform 0.2s ease",
           "&:hover": { transform: "scale(1.05)" },
-          "&:active": { transform: "scale(0.9)" },
+          "&:active": { transform: "scale(0.95)" },
         },
       },
     },
@@ -27,37 +28,57 @@ const shared = {
       styleOverrides: {
         root: {
           borderRadius: 12,
+          boxShadow: "0px 4px 20px rgba(0,0,0,0.1)",
           transition: "background-color 0.4s ease, color 0.4s ease",
         },
       },
     },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          marginBottom: "1rem",
-          transition: "background-color 0.4s ease, color 0.4s ease",
-        },
-      },
-    },
+    // … keep your other overrides
   },
+};
+
+const sharedPalette = {
+  accent: { main: "#008080" },
+  task: { main: "#1976d2" },
+  login: { main: "#673ab7" },
+  success: { main: "#2e7d32" },
+  warning: { main: "#ed6c02" },
+  info: { main: "#0288d1" },
+  secondary: { main: "#9c27b0" },
 };
 
 const lightTheme = createTheme({
   palette: {
     mode: "light",
-    background: { default: "#f9f9f9" },
-    text: { primary: "#333" },
+    background: { default: "#f9f9f9", paper: "#ffffff" },
+    text: { primary: "#333", secondary: "#555" },
+    action: {
+      hover: "rgba(0,0,0,0.04)",
+      active: "#333",
+      selected: "rgba(0,0,0,0.08)",
+      disabled: "rgba(0,0,0,0.26)",
+      disabledBackground: "rgba(0,0,0,0.12)",
+    },
+    ...sharedPalette,
   },
-  ...shared,
+  ...sharedOptions,
 });
 
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
     background: { default: "#121212", paper: "#1e1e1e" },
-    text: { primary: "#e0e0e0" },
+    text: { primary: "#e0e0e0", secondary: "#b0b0b0" },
+    action: {
+      hover: "rgba(255,255,255,0.08)",
+      active: "#fff",
+      selected: "rgba(255,255,255,0.16)",
+      disabled: "rgba(255,255,255,0.3)",
+      disabledBackground: "rgba(255,255,255,0.12)",
+    },
+    ...sharedPalette,
   },
-  ...shared,
+  ...sharedOptions,
 });
 
 export { lightTheme, darkTheme };

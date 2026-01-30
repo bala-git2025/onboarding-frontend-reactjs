@@ -46,7 +46,12 @@ const Login: React.FC = () => {
         response.employeeName
       );
 
-      navigate(response.role === "Employee" ? "/employee-dashboard" : "/manager-dashboard");
+      navigate(
+        response.role === "Employee"
+          ? "/employee-dashboard"
+          : "/manager-dashboard"
+      );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -69,12 +74,23 @@ const Login: React.FC = () => {
 
       {/* Login Card */}
       <Box flex={1} display="flex" justifyContent="center" alignItems="center" p={3}>
-        <Card sx={{ width: "100%", maxWidth: 400, borderRadius: 3, boxShadow: 6 }}>
+        <Card sx={{ width: "100%", maxWidth: 400 }}>
           <CardContent>
-            <Typography variant="h5" textAlign="center" mb={2} fontWeight="bold" color="primary">
+            <Typography
+              variant="h5"
+              textAlign="center"
+              mb={2}
+              color="primary"
+              sx={{ fontWeight: 600 }}
+            >
               Welcome to Accenture
             </Typography>
-            <Typography variant="body2" textAlign="center" color="text.secondary" mb={3}>
+            <Typography
+              variant="body2"
+              textAlign="center"
+              color="text.secondary"
+              mb={3}
+            >
               Sign in to continue to your dashboard
             </Typography>
 
@@ -113,7 +129,10 @@ const Login: React.FC = () => {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
@@ -126,7 +145,7 @@ const Login: React.FC = () => {
                 variant="contained"
                 color="primary"
                 size="large"
-                sx={{ mt: 2, borderRadius: 2 }}
+                sx={{ mt: 2 }}
                 type="submit"
                 disabled={loading}
               >

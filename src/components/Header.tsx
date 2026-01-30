@@ -1,13 +1,20 @@
 import React from "react";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import Box from "@mui/material/Box";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Tooltip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  Divider,
+} from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
+import LogoutIcon from "@mui/icons-material/Logout";
+import PersonIcon from "@mui/icons-material/Person";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -24,48 +31,111 @@ const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
     role === "Employee"
       ? "Employee Dashboard"
       : role === "Manager"
-        ? "Manager Dashboard"
-        : "Onboarding System";
+      ? "Manager Dashboard"
+      : "Onboarding System";
+
+  const brandRoute =
+    role === "Employee"
+      ? "/employee-dashboard"
+      : role === "Manager"
+      ? "/manager-dashboard"
+      : "/";
 
   const displayName = employeeName || userName || "Guest";
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   return (
     <AppBar
       position="sticky"
       color="default"
-      elevation={1}
+      elevation={2}
       sx={{ top: 0, zIndex: (theme) => theme.zIndex.drawer + 1 }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h6" fontWeight="bold">
+      <Toolbar>
+        {/* Brand text */}
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 700,
+            cursor: "pointer",
+            flexGrow: 1,
+          }}
+          onClick={() => navigate(brandRoute)}
+        >
           {brandText}
         </Typography>
 
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+        {/* Dark mode toggle */}
+        <Tooltip title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
           <IconButton onClick={toggleDarkMode} color="inherit" sx={{ mr: 2 }}>
             {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
+        </Tooltip>
 
-          {role && (
-            <>
-              <AccountCircle sx={{ mr: 1 }} />
-              <Typography variant="subtitle1" sx={{ mr: 2 }}>
-                Welcome, {displayName}
-              </Typography>
-              <Button
+        {/* User menu */}
+        {role && (
+          <>
+            <Tooltip title="Account Menu">
+              <IconButton onClick={handleMenu} color="inherit">
+                <AccountCircle />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              PaperProps={{
+                elevation: 4,
+                sx: {
+                  mt: 1.5,
+                  minWidth: 200,
+                },
+              }}
+            >
+              <MenuItem disabled>
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: 600, color: "#008080" }}
+                >
+                  Welcome, {displayName}
+                </Typography>
+              </MenuItem>
+
+              <Divider />
+              <MenuItem
                 onClick={() => {
+                  handleClose();
+                  navigate("/profile");
+                }}
+              >
+                <ListItemIcon>
+                  <PersonIcon fontSize="small" />
+                </ListItemIcon>
+                Profile
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleClose();
                   logout();
                   navigate("/", { replace: true });
                 }}
-                variant="outlined"
-                color="error"
-                size="small"
               >
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" color="error" />
+                </ListItemIcon>
                 Logout
-              </Button>
-            </>
-          )}
-        </Box>
+              </MenuItem>
+            </Menu>
+          </>
+        )}
       </Toolbar>
     </AppBar>
   );

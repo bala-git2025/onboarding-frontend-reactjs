@@ -13,8 +13,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (saved === "dark") setDarkMode(true);
+    if (saved === "dark") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDarkMode(true);
+    }
   }, []);
 
   const toggleDarkMode = () => {
@@ -23,9 +25,11 @@ const App: React.FC = () => {
     localStorage.setItem("theme", next ? "dark" : "light");
   };
 
+  const theme = darkMode ? darkTheme : lightTheme;
+
   if (loading) {
     return (
-      <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+      <ThemeProvider theme={theme}>
         <CssBaseline />
         <LoadingSpinner />
       </ThemeProvider>
@@ -33,7 +37,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <MainLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
         <AppRoutes />

@@ -8,11 +8,15 @@ import {
   Button,
   Divider,
   Alert,
-  useTheme
+  useTheme,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getEmployeeDetails, getEmployeeTasks, EmployeeTask } from "../../services/employeeService";
+import {
+  getEmployeeDetails,
+  getEmployeeTasks,
+  EmployeeTask,
+} from "../../services/employeeService";
 import { formatDate, formatLongDate } from "../../utils/dateUtils";
 
 /* ------------------ TYPES ------------------ */
@@ -89,7 +93,11 @@ const EmployeeDashboard: React.FC = () => {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="error">{error}</Alert>
-        <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate("/")}>
+        <Button
+          variant="outlined"
+          sx={{ mt: 2 }}
+          onClick={() => navigate("/")}
+        >
           Go to Login
         </Button>
       </Box>
@@ -97,13 +105,18 @@ const EmployeeDashboard: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3, backgroundColor: theme.palette.background.default, minHeight: "100vh" }}>
-
+    <Box
+      sx={{
+        p: 3,
+        backgroundColor: theme.palette.background.default,
+        minHeight: "100vh",
+      }}
+    >
       {/* ================= SECTION 1: PERSONAL DETAILS ================= */}
       {employee && (
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant="h6" mb={2}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
               Personal Details
             </Typography>
 
@@ -112,12 +125,24 @@ const EmployeeDashboard: React.FC = () => {
               gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
               gap={2}
             >
-              <Typography><b>Name:</b> {employee.name}</Typography>
-              <Typography><b>Employee ID:</b> {employee.id}</Typography>
-              <Typography><b>Email:</b> {employee.email}</Typography>
-              <Typography><b>Date of Joining:</b> {formatLongDate(employee.joiningDate)}</Typography>
-              <Typography><b>Phone:</b> {employee.phone}</Typography>
-              <Typography><b>Primary Skill:</b> {employee.primarySkill}</Typography>
+              <Typography>
+                <b>Name:</b> {employee.name}
+              </Typography>
+              <Typography>
+                <b>Employee ID:</b> {employee.id}
+              </Typography>
+              <Typography>
+                <b>Email:</b> {employee.email}
+              </Typography>
+              <Typography>
+                <b>Date of Joining:</b> {formatLongDate(employee.joiningDate)}
+              </Typography>
+              <Typography>
+                <b>Phone:</b> {employee.phone}
+              </Typography>
+              <Typography>
+                <b>Primary Skill:</b> {employee.primarySkill}
+              </Typography>
             </Box>
           </CardContent>
         </Card>
@@ -126,31 +151,33 @@ const EmployeeDashboard: React.FC = () => {
       {/* ================= SECTION 2: TASK LIST ================= */}
       <Card>
         <CardContent>
-          <Typography variant="h6" mb={2}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
             Task List
           </Typography>
 
           {tasks.length === 0 && (
-            <Typography color="text.secondary">
-              No tasks assigned.
-            </Typography>
+            <Typography color="text.secondary">No tasks assigned.</Typography>
           )}
 
-          {tasks.map((task) => (
+          {tasks.map((task, index) => (
             <Box
-              key={task.id}
+              key={`${task.id}-${index}`} // ✅ composite key ensures uniqueness
               sx={{
                 mb: 2,
                 p: 2,
                 borderRadius: 1,
                 cursor: "pointer",
-                '&:hover': { backgroundColor: theme.palette.action.hover }
+                "&:hover": { backgroundColor: theme.palette.action.hover },
               }}
               onClick={() => navigate(`/task/${task.id}`)}
             >
-              <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
                 <Box>
-                  <Typography fontWeight="bold">
+                  <Typography sx={{ fontWeight: 600 }}>
                     {task.name}
                   </Typography>
 
