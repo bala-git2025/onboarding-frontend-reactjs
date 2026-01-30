@@ -133,7 +133,7 @@ const EmployeeDashboard: React.FC = () => {
           <Typography variant="h6" mb={2}>
             Task List
           </Typography>
-           <Button variant="outlined" onClick={() => navigate(`/manager-dashboard/add-task/${employeeId}`)}>
+           <Button variant="outlined" onClick={() => navigate(`/manager-dashboard/employee/${employeeId}/add-task`)}>
                <AddIcon/>  Add New Task
             </Button>
           </Toolbar>

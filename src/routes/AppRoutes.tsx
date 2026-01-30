@@ -34,7 +34,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/task/:taskId"
       element={
-        <ProtectedRoute allowedRole={["Employee"]}>
+        <ProtectedRoute allowedRole={["Employee","Manager"]}>
           <TaskDetail />
         </ProtectedRoute>
       }
