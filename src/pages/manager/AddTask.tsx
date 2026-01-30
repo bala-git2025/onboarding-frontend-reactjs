@@ -100,15 +100,23 @@ const AddTaskPage: React.FC = () => {
   };
 
   return (
-    <Box p={3} display="flex" justifyContent="center">
-      <Card sx={{ maxWidth: 700, width: "100%", boxShadow: 4, borderRadius: 3 }}>
+    <Box
+      sx={{
+        p: 3,
+        display: "flex",
+        justifyContent: "center",
+        backgroundColor: (theme) => theme.palette.background.default,
+        minHeight: "100vh",
+      }}
+    >
+      <Card sx={{ maxWidth: 700, width: "100%" }}>
         <CardContent>
           {/* Back Button + Heading */}
           <Box display="flex" alignItems="center" mb={2}>
             <IconButton onClick={() => navigate(-1)} sx={{ mr: 1 }}>
               <ArrowBackIcon />
             </IconButton>
-            <Typography variant="h5" fontWeight="bold">
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
               Add New Task
             </Typography>
           </Box>
@@ -118,7 +126,14 @@ const AddTaskPage: React.FC = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={3} mt={2}>
+            <Box
+              component="form"
+              onSubmit={handleSubmit}
+              display="flex"
+              flexDirection="column"
+              gap={3}
+              mt={2}
+            >
               {/* Row 1: Task Name */}
               <TextField
                 select
@@ -201,16 +216,24 @@ const AddTaskPage: React.FC = () => {
               {success && <Alert severity="success">{success}</Alert>}
 
               {/* Status Instruction */}
-              <Typography variant="body2" color="text.secondary" mt={2}>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
                 Status will be set to <strong>New</strong> automatically.
               </Typography>
 
               {/* Buttons aligned right */}
               <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
-                <Button type="submit" variant="contained" disabled={loading || !employee}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={loading || !employee}
+                >
                   {loading ? "Adding..." : "Add Task"}
                 </Button>
-                <Button variant="outlined" color="secondary" onClick={() => navigate(`/Employee/id/${employeeId}`)}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => navigate(`/Employee/id/${employeeId}`)}
+                >
                   Cancel
                 </Button>
               </Box>

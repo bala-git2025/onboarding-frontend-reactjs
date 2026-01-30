@@ -33,7 +33,6 @@ const sharedOptions = {
         },
       },
     },
-    // … keep your other overrides
   },
 };
 
@@ -50,7 +49,7 @@ const sharedPalette = {
 const lightTheme = createTheme({
   palette: {
     mode: "light",
-    background: { default: "#f9f9f9", paper: "#ffffff" },
+    background: { default: "#ffffff", paper: "#ffffff" },
     text: { primary: "#333", secondary: "#555" },
     action: {
       hover: "rgba(0,0,0,0.04)",
