@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -9,6 +10,7 @@ import {
   Divider,
   Alert,
   useTheme,
+  CircularProgress,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -17,7 +19,7 @@ import {
   getEmployeeTasks,
   EmployeeTask,
 } from "../../services/employeeService";
-import { formatDate, formatLongDate } from "../../utils/dateUtils";
+import { formatDate } from "../../utils/dateUtils";
 
 /* ------------------ TYPES ------------------ */
 interface Employee {
@@ -48,6 +50,63 @@ const getStatusColor = (
   }
 };
 
+/* ------------------ TASK ITEM COMPONENT ------------------ */
+const TaskItem: React.FC<{ task: EmployeeTask; onClick: () => void; onEdit: () => void }> = ({
+  task,
+  onClick,
+  onEdit,
+}) => {
+  const theme = useTheme();
+  const isOverdue =
+    new Date(task.dueDate) < new Date() &&
+    task.status !== "Completed" &&
+    task.status !== "Complete";
+
+  return (
+    <Box
+      sx={{
+        mb: 2,
+        p: 2,
+        borderRadius: 1,
+        cursor: "pointer",
+        "&:hover": { backgroundColor: theme.palette.action.hover },
+      }}
+      onClick={onClick}
+    >
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box>
+          <Typography sx={{ fontWeight: 600 }}>{task.name}</Typography>
+          {task.description && (
+            <Typography variant="body2" color="text.secondary">
+              {task.description}
+            </Typography>
+          )}
+          <Typography variant="body2" color="text.secondary">
+            Due Date: {formatDate(task.dueDate)}
+          </Typography>
+        </Box>
+
+        <Box display="flex" alignItems="center" gap={1}>
+          {/* Show overdue chip if overdue */}
+          {isOverdue && <Chip label="Overdue" color="error" size="small" />}
+          <Chip label={task.status} color={getStatusColor(task.status)} size="small" />
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+          >
+            Edit
+          </Button>
+        </Box>
+      </Box>
+      <Divider sx={{ mt: 2 }} />
+    </Box>
+  );
+};
+
 const EmployeeDashboard: React.FC = () => {
   const { employeeId } = useAuth();
   const navigate = useNavigate();
@@ -61,7 +120,6 @@ const EmployeeDashboard: React.FC = () => {
   useEffect(() => {
     const loadDashboard = async () => {
       if (!employeeId) {
-        console.error("No employeeId found in auth context.");
         setError("Employee ID missing. Please login again.");
         setLoading(false);
         return;
@@ -73,9 +131,7 @@ const EmployeeDashboard: React.FC = () => {
 
         setEmployee(empData);
         setTasks(taskData);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
-        console.error("Dashboard load failed", err);
         setError(err.message || "Failed to load dashboard data.");
       } finally {
         setLoading(false);
@@ -86,23 +142,37 @@ const EmployeeDashboard: React.FC = () => {
   }, [employeeId]);
 
   if (loading) {
-    return <Typography sx={{ p: 3 }}>Loading dashboard...</Typography>;
+    return (
+      <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="error">{error}</Alert>
-        <Button
-          variant="outlined"
-          sx={{ mt: 2 }}
-          onClick={() => navigate("/")}
-        >
+        <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate("/")}>
           Go to Login
         </Button>
       </Box>
     );
   }
+
+  /* ------------------ TASK SUMMARY COUNTS ------------------ */
+  const totalTasks = tasks.length;
+  const newTasks = tasks.filter((t) => t.status === "New").length;
+  const inProgressTasks = tasks.filter((t) => t.status === "In Progress").length;
+  const reviewTasks = tasks.filter((t) => t.status === "Sent for Review").length;
+  const completedTasks = tasks.filter(
+    (t) => t.status === "Completed" || t.status === "Complete"
+  ).length;
+
+  /* ------------------ SORT TASKS BY DUE DATE ASCENDING ------------------ */
+  const sortedTasks = [...tasks].sort(
+    (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+  );
 
   return (
     <Box
@@ -112,41 +182,38 @@ const EmployeeDashboard: React.FC = () => {
         minHeight: "100vh",
       }}
     >
-      {/* ================= SECTION 1: PERSONAL DETAILS ================= */}
-      {employee && (
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Personal Details
-            </Typography>
+      {/* ================= SECTION 1: TASK SUMMARY ================= */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            Task Summary
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
 
-            <Box
-              display="grid"
-              gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
-              gap={2}
-            >
-              <Typography>
-                <b>Name:</b> {employee.name}
-              </Typography>
-              <Typography>
-                <b>Employee ID:</b> {employee.id}
-              </Typography>
-              <Typography>
-                <b>Email:</b> {employee.email}
-              </Typography>
-              <Typography>
-                <b>Date of Joining:</b> {formatLongDate(employee.joiningDate)}
-              </Typography>
-              <Typography>
-                <b>Phone:</b> {employee.phone}
-              </Typography>
-              <Typography>
-                <b>Primary Skill:</b> {employee.primarySkill}
-              </Typography>
+          <Box display="flex" justifyContent="space-around" textAlign="center">
+            <Box>
+              <Typography variant="h5" color="primary">{totalTasks}</Typography>
+              <Typography variant="body2" color="text.secondary">Total Tasks</Typography>
             </Box>
-          </CardContent>
-        </Card>
-      )}
+            <Box>
+              <Typography variant="h5" color="info.main">{newTasks}</Typography>
+              <Typography variant="body2" color="text.secondary">New</Typography>
+            </Box>
+            <Box>
+              <Typography variant="h5" color="warning.main">{inProgressTasks}</Typography>
+              <Typography variant="body2" color="text.secondary">In Progress</Typography>
+            </Box>
+            <Box>
+              <Typography variant="h5" color="secondary.main">{reviewTasks}</Typography>
+              <Typography variant="body2" color="text.secondary">Sent for Review</Typography>
+            </Box>
+            <Box>
+              <Typography variant="h5" color="success.main">{completedTasks}</Typography>
+              <Typography variant="body2" color="text.secondary">Completed</Typography>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
 
       {/* ================= SECTION 2: TASK LIST ================= */}
       <Card>
@@ -154,59 +221,19 @@ const EmployeeDashboard: React.FC = () => {
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
             Task List
           </Typography>
+          <Divider sx={{ mb: 2 }} />
 
-          {tasks.length === 0 && (
+          {sortedTasks.length === 0 && (
             <Typography color="text.secondary">No tasks assigned.</Typography>
           )}
 
-          {tasks.map((task, index) => (
-            <Box
-              key={`${task.id}-${index}`} // ✅ composite key ensures uniqueness
-              sx={{
-                mb: 2,
-                p: 2,
-                borderRadius: 1,
-                cursor: "pointer",
-                "&:hover": { backgroundColor: theme.palette.action.hover },
-              }}
+          {sortedTasks.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
               onClick={() => navigate(`/task/${task.id}`)}
-            >
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Box>
-                  <Typography sx={{ fontWeight: 600 }}>
-                    {task.name}
-                  </Typography>
-
-                  <Typography variant="body2" color="text.secondary">
-                    Due Date: {formatDate(task.dueDate)}
-                  </Typography>
-                </Box>
-
-                <Box display="flex" alignItems="center" gap={2}>
-                  <Chip
-                    label={task.status}
-                    color={getStatusColor(task.status)}
-                    size="small"
-                  />
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/task/${task.id}?edit=true`);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                </Box>
-              </Box>
-
-              <Divider sx={{ mt: 2 }} />
-            </Box>
+              onEdit={() => navigate(`/task/${task.id}?edit=true`)}
+            />
           ))}
         </CardContent>
       </Card>
