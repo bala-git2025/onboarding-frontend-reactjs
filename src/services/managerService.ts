@@ -56,7 +56,7 @@ export const getAvailableTasks = async (): Promise<TaskOption[]> => {
 /* ------------------ CREATE TASK ------------------ */
 export const createTask = async (payload: CreateTaskPayload): Promise<void> => {
   try {
-    await API.put("/manager/addTask", payload);
+    await API.post("/manager/addTask", payload);
   } catch (err) {
     console.error("Error creating task:", err);
     throw err;
