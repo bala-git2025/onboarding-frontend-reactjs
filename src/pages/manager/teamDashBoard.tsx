@@ -118,7 +118,7 @@ const TeamDashboard: React.FC = () => {
                 <TableCell align="center">
                   <MuiLink
                     component={RouterLink}
-                    to={`/employee-dashboard/${emp.employeeId}`}
+                    to={`/Employee/id/${emp.employeeId}`}
                     underline="hover"
                     sx={{ fontWeight: 500 }}
                   >
@@ -139,7 +139,7 @@ const TeamDashboard: React.FC = () => {
                 <TableCell>
                   <Button
                     component={Link}
-                    to={`/employee-dashboard/${emp.employeeId}`}
+                    to={`/Employee/id/${emp.employeeId}`}
                     variant="outlined"
                     size="small"
                     startIcon={<EditOutlinedIcon />}

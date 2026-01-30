@@ -6,6 +6,7 @@ import ManagerDashboard from "../pages/manager/ManagerDashboard";
 import TeamDashboard from "../pages/manager/TeamDashBoard";
 import ProtectedRoute from "./ProtectedRoute";
 import TaskDetail from "../pages/employee/TaskDetail";
+import Employee from "../pages/manager/EmployeeDetail";
  
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -43,6 +44,15 @@ const AppRoutes: React.FC = () => (
       element={
         <ProtectedRoute allowedRole={["Manager"]}>
           <TeamDashboard />
+        </ProtectedRoute>
+      }
+    /> 
+
+    <Route
+      path="/Employee/id/:employeeId"
+      element={
+        <ProtectedRoute allowedRole={["Manager"]}>
+          <Employee />
         </ProtectedRoute>
       }
     /> 
