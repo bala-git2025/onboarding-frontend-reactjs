@@ -8,19 +8,25 @@ import {
   TextField,
   Button,
   Alert,
+  IconButton,
+  InputAdornment,
+  CircularProgress,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import * as AuthService from "../../services/authService";
 
 const Login: React.FC = () => {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleLogin = async () => {
+  const handleLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setError("");
 
     if (!userName || !password) {
@@ -32,7 +38,6 @@ const Login: React.FC = () => {
       setLoading(true);
       const response = await AuthService.login(userName, password);
 
-      // response has { token, role, userName, employeeId, employeeName }
       login(
         response.token,
         response.role,
@@ -42,70 +47,92 @@ const Login: React.FC = () => {
       );
 
       navigate(response.role === "Employee" ? "/employee-dashboard" : "/manager-dashboard");
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unexpected error occurred. Please try again.");
-      }
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box display="flex" height="100%" flexDirection={{ xs: "column", md: "row" }}>
+    <Box display="flex" height="100vh" flexDirection={{ xs: "column", md: "row" }}>
+      {/* Background with overlay */}
       <Box
         flex={1}
         sx={{
-          backgroundImage: "url('/assets/image1.jpg')",
+          backgroundImage:
+            "linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/assets/image1.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          height: { xs: 200, md: "auto" },
         }}
       />
+
+      {/* Login Card */}
       <Box flex={1} display="flex" justifyContent="center" alignItems="center" p={3}>
-        <Card sx={{ width: "100%", maxWidth: 400 }}>
+        <Card sx={{ width: "100%", maxWidth: 400, borderRadius: 3, boxShadow: 6 }}>
           <CardContent>
-            <Typography variant="h5" textAlign="center" mb={2} fontWeight="bold">
+            <Typography variant="h5" textAlign="center" mb={2} fontWeight="bold" color="primary">
               Welcome to Accenture
             </Typography>
             <Typography variant="body2" textAlign="center" color="text.secondary" mb={3}>
               Sign in to continue to your dashboard
             </Typography>
+
             {error && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {error}
               </Alert>
             )}
-            <TextField
-              fullWidth
-              margin="normal"
-              label="User Name"
-              variant="outlined"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-            />
-            <TextField
-              fullWidth
-              margin="normal"
-              type="password"
-              label="Password"
-              variant="outlined"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button
-              fullWidth
-              variant="contained"
-              color="primary"
-              size="large"
-              sx={{ mt: 2 }}
-              onClick={handleLogin}
-              disabled={loading}
-            >
-              {loading ? "Signing In..." : "Sign In"}
-            </Button>
+
+            <form onSubmit={handleLogin}>
+              <TextField
+                fullWidth
+                margin="normal"
+                label="User Name"
+                variant="outlined"
+                value={userName}
+                autoComplete="off"
+                onChange={(e) => {
+                  setUserName(e.target.value);
+                  if (error) setError("");
+                }}
+              />
+
+              <TextField
+                fullWidth
+                margin="normal"
+                type={showPassword ? "text" : "password"}
+                label="Password"
+                variant="outlined"
+                value={password}
+                autoComplete="new-password"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError("");
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                size="large"
+                sx={{ mt: 2, borderRadius: 2 }}
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </Box>
