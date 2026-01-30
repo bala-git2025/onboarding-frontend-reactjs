@@ -46,7 +46,7 @@ export const getTaskById = async (id: string): Promise<Task> => {
 };
 
 export const updateTaskStatus = async (id: string, status: string): Promise<Task> => {
-  const response = await API.put(`/tasks/${id}`, { status });
+  const response = await API.post(`/tasks/${id}`, { status });
   return response.data.task;
 };
 
