@@ -23,6 +23,7 @@ interface TeamMember {
   teamId: number;
   teamName: string;
   status: string;
+  employeeId: number;
 }
 
 interface TeamSummary {
@@ -46,7 +47,11 @@ const ManagerDashboard: React.FC = () => {
       .get("http://localhost:5000/manager/id")
       .then((res) => {
         const teamList: TeamMember[] = res.data.teamList || [];
-        const grouped: Record<number, TeamSummary> = {};
+
+        const grouped: Record<
+          number,
+          TeamSummary & { memberSet: Set<number> }
+        > = {};
 
         teamList.forEach((item) => {
           if (!grouped[item.teamId]) {
@@ -57,10 +62,12 @@ const ManagerDashboard: React.FC = () => {
               completed: 0,
               pending: 0,
               Overdue: 0,
+              memberSet: new Set<number>(),
             };
           }
 
-          grouped[item.teamId].members += 1;
+          // ✅ UNIQUE members
+          grouped[item.teamId].memberSet.add(item.employeeId);
 
           if (item.status === "Completed") {
             grouped[item.teamId].completed += 1;
@@ -71,7 +78,15 @@ const ManagerDashboard: React.FC = () => {
           }
         });
 
-        setTeams(Object.values(grouped));
+        // ✅ Convert Set → members count
+        const finalTeams: TeamSummary[] = Object.values(grouped).map(
+          ({ memberSet, ...rest }) => ({
+            ...rest,
+            members: memberSet.size,
+          })
+        );
+
+        setTeams(finalTeams);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -112,19 +127,17 @@ const ManagerDashboard: React.FC = () => {
                 <Typography variant="h6">{team.teamName}</Typography>
               </Box>
 
-              {/* ROW 1: MEMBERS + COMPLETED */}
+              {/* ROW 1 */}
               <Box display="flex" gap={2} mb={2}>
                 <Box
-                  onClick={() => navigate(`/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`)}
+                  onClick={() =>
+                    navigate(
+                      `/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`
+                    )
+                  }
                   sx={statusBox("rgb(218, 240, 161)")}
                 >
-                  <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    gap={1}
-                    sx={{ maxWidth: "100%" }}
-                  >
+                  <Box display="flex" alignItems="center" gap={1}>
                     <GroupOutlinedIcon color="primary" />
                     <Typography variant="body2">Members</Typography>
                   </Box>
@@ -133,16 +146,13 @@ const ManagerDashboard: React.FC = () => {
 
                 <Box
                   onClick={() =>
-                    navigate(`/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`)
+                    navigate(
+                      `/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`
+                    )
                   }
                   sx={statusBox("rgb(220, 231, 190)")}
-                > <Box
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  gap={1}
-                  sx={{ maxWidth: "100%" }}
                 >
+                  <Box display="flex" alignItems="center" gap={1}>
                     <CheckCircleOutlineOutlinedIcon sx={{ color: "#2E7D32" }} />
                     <Typography variant="body2">Completed</Typography>
                   </Box>
@@ -150,66 +160,53 @@ const ManagerDashboard: React.FC = () => {
                 </Box>
               </Box>
 
-              {/* ROW 2: PENDING*/}
+              {/* ROW 2 */}
               <Box display="flex" gap={2} mb={2}>
                 <Box
                   onClick={() =>
-                    navigate(`/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`)
+                    navigate(
+                      `/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`
+                    )
                   }
                   sx={statusBox("#daebae")}
-                ><Box
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  gap={1}
-                  sx={{ maxWidth: "100%" }}
                 >
+                  <Box display="flex" alignItems="center" gap={1}>
                     <AccessTimeOutlinedIcon sx={{ color: "#F9A825" }} />
                     <Typography variant="body2">Pending</Typography>
                   </Box>
                   <Typography variant="h6">{team.pending}</Typography>
                 </Box>
+
                 <Box
-                 onClick={(e) => {
-                      e.stopPropagation();
-                    navigate(`/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`)
-                  } }
-                  sx={statusBox("#f8d7da")}>
-                  <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    gap={1}
-                    sx={{ maxWidth: "100%" }}
-                  >
+                  onClick={() =>
+                    navigate(
+                      `/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`
+                    )
+                  }
+                  sx={statusBox("#f8d7da")}
+                >
+                  <Box display="flex" alignItems="center" gap={1}>
                     <ErrorOutline sx={{ color: "#C62828" }} />
                     <Typography variant="body2">Overdue</Typography>
                   </Box>
                   <Typography variant="h6">{team.Overdue}</Typography>
                 </Box>
               </Box>
-              {/* FULL WIDTH VIEW BUTTON */}
-              <Box mt={1}>
-                <Button
-                  variant="contained"
-                  component={Link}
-                  to={`/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`}
-                  fullWidth
-                  sx={{
-                    borderRadius: 2,
-                    py: 1.2,
-                    fontWeight: 600,
-                  }}
-                >
-                  View Team Members
-                </Button>
-              </Box>
 
-
+              {/* VIEW BUTTON */}
+              <Button
+                variant="contained"
+                component={Link}
+                to={`/Team-DashBoard/id/${team.teamId}/teamName/${team.teamName}`}
+                fullWidth
+                sx={{ borderRadius: 2, py: 1.2, fontWeight: 600 }}
+              >
+                View Team Members
+              </Button>
             </CardContent>
           </Card>
         ))}
-
+        
       </Box>
     </Box>
   );
