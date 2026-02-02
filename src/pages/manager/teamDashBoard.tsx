@@ -15,7 +15,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import { ArrowBack } from "@mui/icons-material";
+import { ArrowBack, Mode } from "@mui/icons-material";
 import { Link as MuiLink } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 
@@ -36,7 +36,7 @@ interface TeamDetails {
 
 const TeamDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { teamId } = useParams<{ teamId: string }>();
+  const { teamId,teamName } = useParams<{ teamId: string ,teamName : string}>();
   const [teams, setTeams] = useState<TeamDetails[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -81,7 +81,7 @@ const TeamDashboard: React.FC = () => {
   return (
     <Box>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h5">Team Dashboard</Typography>
+        <Typography variant="h5"> {teamName} Dashboard</Typography>
         <Button variant="outlined" startIcon={<ArrowBack />} onClick={() => navigate("/manager-dashboard")}>
           Back to Dashboard
         </Button>
@@ -117,9 +117,8 @@ const TeamDashboard: React.FC = () => {
               <TableRow key={emp.employeeId} hover>
                 <TableCell align="center">
                   <MuiLink
-                    component={RouterLink}
-                    to={`/Employee/id/${emp.employeeId}`}
-                    underline="hover"
+                    onClick= {()=> navigate(`/Employee/id/${emp.employeeId}`,{state: { teamId, teamName,mode: "view" }})}
+                     underline="hover"
                     sx={{ fontWeight: 500 }}
                   >
                   {emp.employeeName} </MuiLink></TableCell>
@@ -138,8 +137,7 @@ const TeamDashboard: React.FC = () => {
                 }}>{emp.overDueTask}</TableCell>
                 <TableCell>
                   <Button
-                    component={Link}
-                    to={`/Employee/id/${emp.employeeId}`}
+                    onClick= {()=> navigate(`/Employee/id/${emp.employeeId}`,{state: { teamId, teamName,mode: "edit" },})}
                     variant="outlined"
                     size="small"
                     startIcon={<EditOutlinedIcon />}

@@ -11,7 +11,7 @@ import {
   useTheme,
   Toolbar
 } from "@mui/material";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getEmployeeDetails, getEmployeeTasks, EmployeeTask } from "../../services/employeeService";
 import { formatDate, formatLongDate } from "../../utils/dateUtils";
@@ -49,13 +49,15 @@ const getStatusColor = (
 
 const EmployeeDashboard: React.FC = () => {
   const { employeeId } = useParams<{ employeeId: string }>();
+  const location = useLocation();
+  const { teamId, teamName, mode } = location.state || {};
   const [employee, setEmployee] = useState<Employee | null>(null);
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<EmployeeTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
-
+  const isViewMode = mode === "view";
   /* ------------------ LOAD DATA ------------------ */
   useEffect(() => {
     const loadDashboard = async () => {
@@ -72,7 +74,7 @@ const EmployeeDashboard: React.FC = () => {
 
         setEmployee(empData);
         setTasks(taskData);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error("Dashboard load failed", err);
         setError(err.message || "Failed to load dashboard data.");
@@ -92,7 +94,7 @@ const EmployeeDashboard: React.FC = () => {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="error">{error}</Alert>
-        <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate("/")}>
+        <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate("/manager-dashboard")}>
           Go to Login
         </Button>
       </Box>
@@ -100,8 +102,13 @@ const EmployeeDashboard: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3, backgroundColor: theme.palette.background.default, minHeight: "100vh" }}>
-
+    <Box>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Typography variant="h5">Employee Details</Typography>
+        <Button variant="outlined" startIcon={<ArrowBack />} onClick={() => navigate(`/Team-DashBoard/id/${teamId}/teamName/${teamName}`)}>
+          Back to Dashboard
+        </Button>
+      </Toolbar>
       {/* ================= SECTION 1: PERSONAL DETAILS ================= */}
       {employee && (
         <Card sx={{ mb: 3 }}>
@@ -130,11 +137,12 @@ const EmployeeDashboard: React.FC = () => {
       <Card>
         <CardContent>
           <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="h6" mb={2}>
-            Task List
-          </Typography>
-           <Button variant="outlined" onClick={() => navigate(`/manager-dashboard/employee/${employeeId}/add-task`)}>
-               <AddIcon/>  Add New Task
+            <Typography variant="h6" mb={2}>
+              Task List
+            </Typography>
+            <Button variant="outlined" onClick={() => navigate(`/manager-dashboard/employee/${employeeId}/add-task`)}
+              disabled={isViewMode}>
+              <AddIcon />  Add New Task
             </Button>
           </Toolbar>
 
@@ -150,11 +158,16 @@ const EmployeeDashboard: React.FC = () => {
               sx={{
                 mb: 2,
                 p: 2,
-                borderRadius: 1,
-                cursor: "pointer",
-                '&:hover': { backgroundColor: theme.palette.action.hover }
+                cursor: isViewMode ? "not-allowed" : "pointer",
+                opacity: isViewMode ? 0.6 : 1,
+                pointerEvents: isViewMode ? "none" : "auto",
+                '&:hover': {
+                  backgroundColor: isViewMode
+                    ? "transparent"
+                    : theme.palette.action.hover
+                }
               }}
-              onClick={() => navigate(`/task/${task.id}`)}
+              onClick={() => { if (isViewMode) return; navigate(`/task/${task.id}`); }}
             >
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
@@ -176,6 +189,7 @@ const EmployeeDashboard: React.FC = () => {
                   <Button
                     size="small"
                     variant="outlined"
+                    disabled={isViewMode}
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/task/${task.id}?edit=true`);
@@ -191,6 +205,11 @@ const EmployeeDashboard: React.FC = () => {
           ))}
         </CardContent>
       </Card>
+      <Toolbar sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Button variant="outlined" startIcon={<ArrowBack />} onClick={() => navigate(`/Team-DashBoard/id/${teamId}/teamName/${teamName}`)}>
+          Back to Dashboard
+        </Button>
+      </Toolbar>
     </Box>
   );
 };
