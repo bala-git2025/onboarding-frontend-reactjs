@@ -58,6 +58,7 @@ const EmployeeDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const isViewMode = mode === "view";
+  const managerDashboard = "Y";
   /* ------------------ LOAD DATA ------------------ */
   useEffect(() => {
     const loadDashboard = async () => {
@@ -192,7 +193,7 @@ const EmployeeDashboard: React.FC = () => {
                     disabled={isViewMode}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/task/${task.id}?edit=true`);
+                      navigate(`/task/${task.id}?edit=true`, {state: {employeeId, teamId, teamName,managerDashboard}});
                     }}
                   >
                     Edit

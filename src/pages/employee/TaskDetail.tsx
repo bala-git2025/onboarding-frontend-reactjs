@@ -21,7 +21,7 @@ import {
   InputLabel,
   useTheme
 } from "@mui/material";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { ArrowBack } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -49,6 +49,8 @@ const TaskDetail: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const { employeeId, employeeName, userName } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { employeeId: employeeDetailsId,managerDashboard, teamId, teamName } = location.state || {};
   const [searchParams] = useSearchParams();
   const [task, setTask] = useState<CompleteTaskDetail | null>(null);
   const [status, setStatus] = useState<string>("");
@@ -71,12 +73,12 @@ const TaskDetail: React.FC = () => {
 
       try {
         const taskData = await getTaskDetail(employeeId, parseInt(taskId)) as CompleteTaskDetail;
-        
+
         const transformedComments = taskData.comments.map(comment => ({
           ...comment,
           author: comment.author === "User" ? displayName : comment.author
         }));
-        
+
         setTask({ ...taskData, comments: transformedComments });
         setStatus(taskData.status);
         setError(null);
@@ -115,7 +117,7 @@ const TaskDetail: React.FC = () => {
     if (!newComment.trim() || !task || !taskId || !employeeId) return;
 
     try {
-      
+
       await addTaskComment(employeeId, parseInt(taskId), newComment);
 
       const newCommentObj = {
@@ -180,7 +182,12 @@ const TaskDetail: React.FC = () => {
           </Typography>
 
           <Box display="flex" alignItems="center" mb={3}>
-            <IconButton onClick={() => navigate("/employee-dashboard")} sx={{ mr: 1 }}>
+            <IconButton
+              sx={{ mr: 1 }}
+              onClick={() => managerDashboard == 'Y' ? navigate(`/Employee/id/${employeeDetailsId}`,
+                  { state: { teamId, teamName } }):
+                  navigate("/employee-dashboard") }
+            >
               <ArrowBack />
             </IconButton>
             <Typography variant="h5" fontWeight="bold" sx={{ flexGrow: 1 }}>
