@@ -12,7 +12,7 @@ import {
   IconButton,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   getAvailableTasks,
   createTask,
@@ -31,6 +31,9 @@ const AddTaskPage: React.FC = () => {
   const [description, setDescription] = useState("");
   const [poc, setPoc] = useState("");
   const [priority, setPriority] = useState("Medium");
+  const location = useLocation();
+  const { teamId, teamName } = location.state || {};
+
 
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [loading, setLoading] = useState(false);
@@ -86,7 +89,11 @@ const AddTaskPage: React.FC = () => {
       setPoc("");
       setPriority("Medium");
 
-      setTimeout(() => navigate(`/Employee/id/${employeeId}`), 1500);
+      setTimeout(() => {
+        navigate(`/Employee/id/${employeeId}`,
+          { state: { teamId, teamName } });
+      }, 1500);
+
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error("Error adding task:", err.message);
@@ -232,7 +239,7 @@ const AddTaskPage: React.FC = () => {
                 <Button
                   variant="outlined"
                   color="secondary"
-                  onClick={() => navigate(`/Employee/id/${employeeId}`)}
+                  onClick={() => navigate(`/Employee/id/${employeeId}`, { state: { teamId, teamName } })}
                 >
                   Cancel
                 </Button>

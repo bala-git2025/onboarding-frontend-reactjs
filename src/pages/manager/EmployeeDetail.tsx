@@ -141,7 +141,11 @@ const EmployeeDashboard: React.FC = () => {
             <Typography variant="h6" mb={2}>
               Task List
             </Typography>
-            <Button variant="outlined" onClick={() => navigate(`/manager-dashboard/employee/${employeeId}/add-task`)}
+            <Button variant="outlined"
+             onClick={() => 
+              navigate(`/manager-dashboard/employee/${employeeId}/add-task`,
+                {state: {employeeId, teamId, teamName,managerDashboard}}
+              )}
               disabled={isViewMode}>
               <AddIcon />  Add New Task
             </Button>
