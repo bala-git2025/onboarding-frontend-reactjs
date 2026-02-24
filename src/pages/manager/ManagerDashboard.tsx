@@ -24,11 +24,13 @@ interface TeamMember {
   teamName: string;
   status: string;
   employeeId: number;
+  dueDate: Date;
 }
 
 interface TeamSummary {
   teamId: number;
   teamName: string;
+  dueDate : Date;
   members: number;
   completed: number;
   pending: number;
@@ -47,8 +49,7 @@ const ManagerDashboard: React.FC = () => {
       .get("http://localhost:5000/manager/id")
       .then((res) => {
         const teamList: TeamMember[] = res.data.teamList || [];
-
-        const grouped: Record<
+         const grouped: Record<
           number,
           TeamSummary & { memberSet: Set<number> }
         > = {};
@@ -58,6 +59,7 @@ const ManagerDashboard: React.FC = () => {
             grouped[item.teamId] = {
               teamId: item.teamId,
               teamName: item.teamName,
+              dueDate : item.dueDate,
               members: 0,
               completed: 0,
               pending: 0,
@@ -71,9 +73,10 @@ const ManagerDashboard: React.FC = () => {
 
           if (item.status === "Completed") {
             grouped[item.teamId].completed += 1;
-          } else if (item.status === "Pending") {
+          } else if ((item.status === "New" || item.status =="In Progress" 
+            || item.status == "Sent for Review") && item.dueDate < new Date()) {
             grouped[item.teamId].pending += 1;
-          } else if (item.status === "Overdue") {
+          } else  {
             grouped[item.teamId].Overdue += 1;
           }
         });
@@ -206,7 +209,7 @@ const ManagerDashboard: React.FC = () => {
             </CardContent>
           </Card>
         ))}
-        
+
       </Box>
     </Box>
   );
