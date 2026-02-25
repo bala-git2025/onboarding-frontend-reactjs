@@ -50,7 +50,7 @@ const TaskDetail: React.FC = () => {
   const { employeeId, employeeName, userName } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { employeeId: employeeDetailsId,managerDashboard, teamId, teamName } = location.state || {};
+  let { employeeId: employeeDetailsId,managerDashboard, teamId, teamName } = location.state || {};
   const [searchParams] = useSearchParams();
   const [task, setTask] = useState<CompleteTaskDetail | null>(null);
   const [status, setStatus] = useState<string>("");
@@ -64,7 +64,10 @@ const TaskDetail: React.FC = () => {
   const displayName = employeeName || userName || "Guest";
 
   useEffect(() => {
-    const fetchTaskDetail = async () => {
+     if(employeeDetailsId === null || employeeDetailsId === undefined){
+       employeeDetailsId = employeeId;
+     }
+        const fetchTaskDetail = async () => {
       if (!taskId || !employeeId) {
         setError("Task ID or Employee ID is missing.");
         setLoading(false);

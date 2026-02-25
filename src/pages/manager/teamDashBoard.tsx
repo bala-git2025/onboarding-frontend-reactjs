@@ -18,6 +18,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { ArrowBack, Mode } from "@mui/icons-material";
 import { Link as MuiLink } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
+import { getTeamMembersSummary } from "../../services/managerService";
 
 interface Team {
   employeeId: number;
@@ -40,43 +41,22 @@ const TeamDashboard: React.FC = () => {
   const [teams, setTeams] = useState<TeamDetails[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!teamId) return;
+ 
+useEffect(() => {
+  if (!teamId) return;
 
-    axios
-      .get(`http://localhost:5000/manager/team/${teamId}`)
-      .then((res) => {
-        const teamList: Team[] = res.data.teamList || [];
-        const grouped: Record<number, TeamDetails> = {};
+  (async () => {
+    try {
+      const data = await getTeamMembersSummary(teamId);
+      setTeams(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, [teamId]);
 
-        teamList.forEach((item) => {
-          if (!grouped[item.employeeId]) {
-            grouped[item.employeeId] = {
-              employeeId: item.employeeId,
-              employeeName: item.name,
-              totalTasks: 0,
-              completedTask: 0,
-              pendingTask: 0,
-              overDueTask: 0,
-            };
-          }
-
-          grouped[item.employeeId].totalTasks += 1;
-
-          if (item.status === "Completed") {
-            grouped[item.employeeId].completedTask += 1;
-          } else if (item.status === "Pending") {
-            grouped[item.employeeId].pendingTask += 1;
-          } else if (item.status === "Overdue") {
-            grouped[item.employeeId].overDueTask += 1;
-          }
-        });
-
-        setTeams(Object.values(grouped));
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [teamId]);
 
   return (
     <Box>

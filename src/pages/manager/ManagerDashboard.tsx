@@ -1,5 +1,5 @@
+// ManagerDashboard.tsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Box,
   Card,
@@ -11,33 +11,13 @@ import {
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 
-// 🔹 ICONS
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import { ErrorOutline } from "@mui/icons-material";
 
-/* ================= TYPES ================= */
-
-interface TeamMember {
-  teamId: number;
-  teamName: string;
-  status: string;
-  employeeId: number;
-  dueDate: Date;
-}
-
-interface TeamSummary {
-  teamId: number;
-  teamName: string;
-  dueDate : Date;
-  members: number;
-  completed: number;
-  pending: number;
-  Overdue: number;
-}
-
-/* ================= COMPONENT ================= */
+// ✅ Import types + service
+import { TeamSummary, getManagerTeamsSummary } from"../../services/managerService";
 
 const ManagerDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -45,54 +25,24 @@ const ManagerDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/manager/id")
-      .then((res) => {
-        const teamList: TeamMember[] = res.data.teamList || [];
-         const grouped: Record<
-          number,
-          TeamSummary & { memberSet: Set<number> }
-        > = {};
+    let mounted = true;
 
-        teamList.forEach((item) => {
-          if (!grouped[item.teamId]) {
-            grouped[item.teamId] = {
-              teamId: item.teamId,
-              teamName: item.teamName,
-              dueDate : item.dueDate,
-              members: 0,
-              completed: 0,
-              pending: 0,
-              Overdue: 0,
-              memberSet: new Set<number>(),
-            };
-          }
+    (async () => {
+      try {
+        // If your API requires managerId, pass it here (e.g., from auth/user context)
+        // const data = await getManagerTeamsSummary(managerId);
+        const data = await getManagerTeamsSummary(); // current endpoint: /manager/id
+        if (mounted) setTeams(data);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
 
-          // ✅ UNIQUE members
-          grouped[item.teamId].memberSet.add(item.employeeId);
-
-          if (item.status === "Completed") {
-            grouped[item.teamId].completed += 1;
-          } else if ((item.status === "New" || item.status =="In Progress" 
-            || item.status == "Sent for Review") && item.dueDate < new Date()) {
-            grouped[item.teamId].pending += 1;
-          } else  {
-            grouped[item.teamId].Overdue += 1;
-          }
-        });
-
-        // ✅ Convert Set → members count
-        const finalTeams: TeamSummary[] = Object.values(grouped).map(
-          ({ memberSet, ...rest }) => ({
-            ...rest,
-            members: memberSet.size,
-          })
-        );
-
-        setTeams(finalTeams);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (loading) {
