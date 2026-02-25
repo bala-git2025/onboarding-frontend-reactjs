@@ -75,7 +75,7 @@ const TaskDetail: React.FC = () => {
       }
 
       try {
-        const taskData = await getTaskDetail(employeeId, parseInt(taskId)) as CompleteTaskDetail;
+        const taskData = await getTaskDetail(employeeDetailsId, parseInt(taskId)) as CompleteTaskDetail;
 
         const transformedComments = taskData.comments.map(comment => ({
           ...comment,
