@@ -50,6 +50,7 @@ const TaskDetail: React.FC = () => {
   const { employeeId, employeeName, userName } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  // eslint-disable-next-line prefer-const
   let { employeeId: employeeDetailsId,managerDashboard, teamId, teamName } = location.state || {};
   const [searchParams] = useSearchParams();
   const [task, setTask] = useState<CompleteTaskDetail | null>(null);
@@ -65,6 +66,7 @@ const TaskDetail: React.FC = () => {
 
   useEffect(() => {
      if(employeeDetailsId === null || employeeDetailsId === undefined){
+       // eslint-disable-next-line react-hooks/exhaustive-deps
        employeeDetailsId = employeeId;
      }
         const fetchTaskDetail = async () => {

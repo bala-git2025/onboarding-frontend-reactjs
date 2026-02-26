@@ -12,6 +12,7 @@ import {
   Toolbar
 } from "@mui/material";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useAuth } from "../../context/AuthContext";
 import { getEmployeeDetails, getEmployeeTasks, deleteEmployeeTask, EmployeeTask } from "../../services/employeeService";
 import { formatDate, formatLongDate } from "../../utils/dateUtils";

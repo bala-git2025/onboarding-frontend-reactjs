@@ -16,6 +16,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  Alert,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -86,25 +87,50 @@ const Profile: React.FC = () => {
     value: string | undefined,
     fieldKey?: "email" | "phone" | "primarySkill"
   ) => {
+    const labelId = `label-${fieldKey}`; // Generate unique ID for accessibility
     const isEditing = editField === fieldKey;
     return (
-      <TableRow>
-        <TableCell sx={{ fontWeight: 600, width: 180 }}>{label}</TableCell>
-        <TableCell>
+      <TableRow hover>
+        <TableCell 
+          component="th" 
+          scope="row" 
+          id={labelId} 
+          sx={{ 
+            fontWeight: 700, 
+            width: 200, 
+            fontSize: '1rem',
+            color: 'text.secondary' 
+          }}
+        >
+          {label}
+        </TableCell>
+        <TableCell sx={{ fontSize: '1rem' }}>
           {isEditing && fieldKey ? (
             <TextField
               value={value || ""}
               onChange={(e) => setProfile({ ...profile!, [fieldKey]: e.target.value })}
               size="small"
               fullWidth
+              autoFocus
+              inputProps={{ 
+                'aria-labelledby': labelId,
+                autoComplete: fieldKey === 'email' ? 'email' : (fieldKey === 'phone' ? 'tel' : 'off')
+              }}
             />
           ) : (
-            <Typography>{value || "N/A"}</Typography>
+            <Typography id={labelId} variant="body1" sx={{ color: 'text.primary' }}>
+              {value || "N/A"}
+            </Typography>
           )}
         </TableCell>
-        <TableCell align="right" sx={{ width: 50 }}>
+        <TableCell align="right" sx={{ width: 60 }}>
           {fieldKey && (
-            <IconButton size="small" onClick={() => setEditField(fieldKey)}>
+            <IconButton 
+              size="small" 
+              onClick={() => setEditField(fieldKey)}
+              aria-label={`Edit ${label}`}
+              sx={{ color: 'text.secondary' }}
+            >
               <EditIcon fontSize="small" />
             </IconButton>
           )}
@@ -116,13 +142,14 @@ const Profile: React.FC = () => {
   if (loading) {
     return (
       <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
-        <CircularProgress />
+        <CircularProgress aria-label="Loading profile" />
       </Box>
     );
   }
 
   return (
     <Box
+      role="main"
       sx={{
         p: 3,
         backgroundColor: (theme) => theme.palette.background.default,
@@ -133,21 +160,28 @@ const Profile: React.FC = () => {
     >
       {/* Back arrow */}
       <Box display="flex" alignItems="center" mb={2}>
-        <IconButton onClick={() => navigate(-1)}>
+        <IconButton 
+          onClick={() => navigate(-1)} 
+          aria-label="Go back to dashboard"
+          sx={{ mr: 1 }}
+        >
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h5" sx={{ fontWeight: 600, ml: 1 }}>
+        <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
           Personal Details
         </Typography>
       </Box>
 
-      <Card sx={{ flexGrow: 1 }}>
-        <CardContent>
+      <Card sx={{ flexGrow: 1, borderRadius: 3, boxShadow: 3 }}>
+        <CardContent sx={{ p: 4 }}>
           {profile && (
             <>
               {/* Avatar + Name */}
               <Box display="flex" alignItems="center" flexDirection="column" mb={3}>
-                <Avatar sx={{ width: 80, height: 80, bgcolor: "primary.main" }}>
+                <Avatar 
+                  sx={{ width: 80, height: 80, bgcolor: "primary.main" }}
+                  aria-label={`Profile avatar for ${profile.name}`}
+                >
                   {profile.name.charAt(0)}
                 </Avatar>
                 <Typography variant="h6" mt={1}>{profile.name}</Typography>
@@ -158,26 +192,30 @@ const Profile: React.FC = () => {
               <Paper
                 elevation={2}
                 sx={{
-                  p: 2,
+                  p: 0,
                   mb: 3,
                   borderRadius: 2,
                   width: "100%",
-                  maxWidth: 700,
+                  maxWidth: 800,
                   mx: "auto",
+                  border: '1px solid rgba(0,0,0,0.08)',
+                  overflow: "hidden"
                 }}
               >
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-                  Personal Information
-                </Typography>
-                <Table>
+                <Box sx={{ p: 2, bgcolor: "rgba(0,0,0,0.02)", borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>Personal Information</Typography>
+                </Box>
+                <Table size="medium">
                   <TableBody>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600, width: 180 }}>ID</TableCell>
-                      <TableCell>{profile.id}</TableCell>
+                    <TableRow hover>
+                      <TableCell component="th" scope="row" sx={{ fontWeight: 700, width: 200, fontSize: '1rem', color: 'text.secondary' }}>ID</TableCell>
+                      <TableCell sx={{ fontSize: '1rem' }}>{profile.id}</TableCell>
+                      <TableCell />
                     </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600 }}>Username</TableCell>
-                      <TableCell>{profile.username}</TableCell>
+                    <TableRow hover>
+                      <TableCell component="th" scope="row" sx={{ fontWeight: 700, fontSize: '1rem', color: 'text.secondary' }}>Username</TableCell>
+                      <TableCell sx={{ fontSize: '1rem' }}>{profile.username}</TableCell>
+                      <TableCell />
                     </TableRow>
                     {renderField("Email", profile.email, "email")}
                     {renderField("Mobile", profile.phone, "phone")}
@@ -189,34 +227,39 @@ const Profile: React.FC = () => {
               <Paper
                 elevation={2}
                 sx={{
-                  p: 2,
+                  p: 0,
                   mb: 3,
                   borderRadius: 2,
                   width: "100%",
-                  maxWidth: 700,
+                  maxWidth: 800,
                   mx: "auto",
+                  border: '1px solid rgba(0,0,0,0.08)',
+                  overflow: "hidden"
                 }}
               >
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-                  Work Information
-                </Typography>
-                <Table>
+                <Box sx={{ p: 2, bgcolor: "rgba(0,0,0,0.02)", borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>Work Information</Typography>
+                </Box>
+                <Table size="medium">
                   <TableBody>
                     {renderField("Primary Skill", profile.primarySkill, "primarySkill")}
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600 }}>Team</TableCell>
-                      <TableCell>{profile.teamName || "N/A"}</TableCell>
+                    <TableRow hover>
+                      <TableCell component="th" scope="row" sx={{ fontWeight: 700, fontSize: '1rem', color: 'text.secondary' }}>Team</TableCell>
+                      <TableCell sx={{ fontSize: '1rem' }}>{profile.teamName || "N/A"}</TableCell>
+                      <TableCell />
                     </TableRow>
                     {profile.joiningDate && (
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 600 }}>Joining Date</TableCell>
-                        <TableCell>{formatLongDate(profile.joiningDate)}</TableCell>
+                      <TableRow hover>
+                        <TableCell component="th" scope="row" sx={{ fontWeight: 700, fontSize: '1rem', color: 'text.secondary' }}>Joining Date</TableCell>
+                        <TableCell sx={{ fontSize: '1rem' }}>{formatLongDate(profile.joiningDate)}</TableCell>
+                        <TableCell />
                       </TableRow>
                     )}
                     {profile.lastUpdated && (
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 600 }}>Last Updated</TableCell>
-                        <TableCell>{formatLongDate(profile.lastUpdated)}</TableCell>
+                      <TableRow hover>
+                        <TableCell component="th" scope="row" sx={{ fontWeight: 700, fontSize: '1rem', color: 'text.secondary' }}>Last Updated</TableCell>
+                        <TableCell sx={{ fontSize: '1rem' }}>{formatLongDate(profile.lastUpdated)}</TableCell>
+                        <TableCell />
                       </TableRow>
                     )}
                   </TableBody>
@@ -230,6 +273,7 @@ const Profile: React.FC = () => {
                   color="secondary"
                   onClick={handleCancel}
                   disabled={!editField}
+                  sx={{ px: 4, borderRadius: 2 }}
                 >
                   Cancel
                 </Button>
@@ -238,8 +282,9 @@ const Profile: React.FC = () => {
                   color="primary"
                   onClick={handleSave}
                   disabled={saving || !editField}
+                  sx={{ px: 4, borderRadius: 2 }}
                 >
-                  {saving ? <CircularProgress size={20} /> : "Save Changes"}
+                  {saving ? <CircularProgress size={20} color="inherit" /> : "Save Changes"}
                 </Button>
               </Box>
             </>
@@ -247,19 +292,27 @@ const Profile: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Snackbar feedback */}
+      {/* Snackbar feedback - Using Alert for better ARIA roles */}
       <Snackbar
         open={!!success}
         autoHideDuration={3000}
         onClose={() => setSuccess(null)}
-        message={success}
-      />
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+          {success}
+        </Alert>
+      </Snackbar>
       <Snackbar
         open={!!error}
-        autoHideDuration={3000}
+        autoHideDuration={6000}
         onClose={() => setError(null)}
-        message={error}
-      />
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

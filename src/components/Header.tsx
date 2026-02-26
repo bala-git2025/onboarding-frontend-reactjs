@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -43,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
 
   const displayName = employeeName || userName || "Guest";
 
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -63,6 +63,7 @@ const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
         {/* Brand text */}
         <Typography
           variant="h6"
+          component="h1"
           sx={{
             fontWeight: 700,
             cursor: "pointer",
@@ -74,8 +75,17 @@ const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
         </Typography>
 
         {/* Dark mode toggle */}
-        <Tooltip title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
-          <IconButton onClick={toggleDarkMode} color="inherit" sx={{ mr: 2 }}>
+        <Tooltip
+          title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          <IconButton
+            onClick={toggleDarkMode}
+            color="inherit"
+            sx={{ mr: 2 }}
+            aria-label={
+              darkMode ? "Switch to light mode" : "Switch to dark mode"
+            }
+          >
             {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
         </Tooltip>
@@ -84,14 +94,31 @@ const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
         {role && (
           <>
             <Tooltip title="Account Menu">
-              <IconButton onClick={handleMenu} color="inherit">
+              <IconButton
+                onClick={handleMenu}
+                color="inherit"
+                aria-controls={open ? "account-menu" : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? "true" : undefined}
+                aria-label="Account menu"
+              >
                 <AccountCircle />
               </IconButton>
             </Tooltip>
+
             <Menu
+              id="account-menu"
               anchorEl={anchorEl}
               open={open}
               onClose={handleClose}
+              transformOrigin={{
+                horizontal: "right",
+                vertical: "top",
+              }}
+              anchorOrigin={{
+                horizontal: "right",
+                vertical: "bottom",
+              }}
               PaperProps={{
                 elevation: 4,
                 sx: {

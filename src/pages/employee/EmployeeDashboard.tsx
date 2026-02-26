@@ -69,13 +69,29 @@ const TaskItem: React.FC<{ task: EmployeeTask; onClick: () => void; onEdit: () =
         p: 2,
         borderRadius: 1,
         cursor: "pointer",
+        "&:focus-visible": { 
+            outline: `2px solid ${theme.palette.primary.main}`, 
+            outlineOffset: "2px",
+            backgroundColor: theme.palette.action.hover 
+        },
         "&:hover": { backgroundColor: theme.palette.action.hover },
       }}
       onClick={onClick}
+      tabIndex={0}
+      role="button"
+      aria-label={`View task details for ${task.name}`}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Box>
-          <Typography sx={{ fontWeight: 600 }}>{task.name}</Typography>
+          <Typography component="h4" variant="subtitle1" sx={{ fontWeight: 600 }}>
+            {task.name}
+          </Typography>
           {task.description && (
             <Typography variant="body2" color="text.secondary">
               {task.description}
@@ -89,7 +105,12 @@ const TaskItem: React.FC<{ task: EmployeeTask; onClick: () => void; onEdit: () =
         <Box display="flex" alignItems="center" gap={1}>
           {/* Show overdue chip if overdue */}
           {isOverdue && <Chip label="Overdue" color="error" size="small" />}
-          <Chip label={task.status} color={getStatusColor(task.status)} size="small" />
+          <Chip 
+            label={task.status} 
+            color={getStatusColor(task.status)} 
+            size="small" 
+            aria-label={`Status: ${task.status}`}
+          />
           <Button
             size="small"
             variant="outlined"
@@ -97,6 +118,7 @@ const TaskItem: React.FC<{ task: EmployeeTask; onClick: () => void; onEdit: () =
               e.stopPropagation();
               onEdit();
             }}
+            aria-label={`Edit task ${task.name}`}
           >
             Edit
           </Button>
@@ -110,6 +132,7 @@ const TaskItem: React.FC<{ task: EmployeeTask; onClick: () => void; onEdit: () =
 const EmployeeDashboard: React.FC = () => {
   const { employeeId } = useAuth();
   const navigate = useNavigate();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [tasks, setTasks] = useState<EmployeeTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,14 +167,14 @@ const EmployeeDashboard: React.FC = () => {
   if (loading) {
     return (
       <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
-        <CircularProgress />
+        <CircularProgress aria-label="Loading tasks" />
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 3 }} role="alert">
         <Alert severity="error">{error}</Alert>
         <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate("/")}>
           Go to Login
@@ -176,6 +199,7 @@ const EmployeeDashboard: React.FC = () => {
 
   return (
     <Box
+      role="main"
       sx={{
         p: 3,
         backgroundColor: theme.palette.background.default,
@@ -185,12 +209,12 @@ const EmployeeDashboard: React.FC = () => {
       {/* ================= SECTION 1: TASK SUMMARY ================= */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          <Typography variant="h6" component="h2" sx={{ fontWeight: 600, mb: 2 }}>
             Task Summary
           </Typography>
           <Divider sx={{ mb: 2 }} />
 
-          <Box display="flex" justifyContent="space-around" textAlign="center">
+          <Box display="flex" justifyContent="space-around" textAlign="center" aria-label="Task Summary Statistics">
             <Box>
               <Typography variant="h5" color="primary">{totalTasks}</Typography>
               <Typography variant="body2" color="text.secondary">Total Tasks</Typography>
@@ -218,13 +242,13 @@ const EmployeeDashboard: React.FC = () => {
       {/* ================= SECTION 2: TASK LIST ================= */}
       <Card>
         <CardContent>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 2 }}>
             Task List
           </Typography>
           <Divider sx={{ mb: 2 }} />
 
           {sortedTasks.length === 0 && (
-            <Typography color="text.secondary">No tasks assigned.</Typography>
+             <Typography color="text.secondary" role="status">No tasks assigned.</Typography>
           )}
 
           {sortedTasks.map((task) => (

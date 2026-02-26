@@ -29,7 +29,40 @@ const sharedOptions = {
         root: {
           borderRadius: 12,
           boxShadow: "0px 4px 20px rgba(0,0,0,0.1)",
-          transition: "background-color 0.4s ease, color 0.4s ease",
+        },
+      },
+    },
+       MuiChip: {
+      styleOverrides: {
+        root: {
+          fontWeight: 600, 
+          borderRadius: 16,
+          px: 1,
+        },
+        colorError: {
+          backgroundColor: "#d32f2f",
+          color: "#ffffff",
+        },
+        
+        colorWarning: {
+          backgroundColor: "#bf360c", // Darkest Orange available
+          color: "#ffffff",
+          "& .MuiChip-label": {
+            fontWeight: "bold", 
+          },
+        },
+        
+        colorInfo: {
+          backgroundColor: "#01579b",
+          color: "#ffffff",
+        },
+        colorSecondary: {
+          backgroundColor: "#9c27b0",
+          color: "#ffffff",
+        },
+        colorSuccess: {
+          backgroundColor: "#2e7d32",
+          color: "#ffffff",
         },
       },
     },
@@ -49,8 +82,8 @@ const sharedPalette = {
 const lightTheme = createTheme({
   palette: {
     mode: "light",
-    background: { default: "#ffffff", paper: "#ffffff" },
-    text: { primary: "#333", secondary: "#555" },
+    background: { default: "#f5f5f5", paper: "#ffffff" },
+    text: { primary: "#333333", secondary: "#555555" },
     action: {
       hover: "rgba(0,0,0,0.04)",
       active: "#333",
