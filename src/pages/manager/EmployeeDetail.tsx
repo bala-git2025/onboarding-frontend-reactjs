@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getEmployeeDetails, getEmployeeTasks, EmployeeTask } from "../../services/employeeService";
+import { getEmployeeDetails, getEmployeeTasks, deleteEmployeeTask, EmployeeTask } from "../../services/employeeService";
 import { formatDate, formatLongDate } from "../../utils/dateUtils";
 import { ArrowBack } from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
@@ -23,7 +23,7 @@ interface Employee {
   id: number;
   name: string;
   email: string;
-  phone: string;
+  phone: string;  
   joiningDate: string;
   primarySkill: string;
 }
@@ -197,11 +197,23 @@ const EmployeeDashboard: React.FC = () => {
                     disabled={isViewMode}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/task/${task.id}?edit=true`, {state: {employeeId, teamId, teamName,managerDashboard}});
+                      navigate(`/task/${task.id}?edit=true`, {state: 
+                        {employeeId,
+                         teamId, teamName,managerDashboard}});
                     }}
                   >
                     Edit
                   </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    disabled={isViewMode}
+                    onClick={ async() =>{
+                      await deleteEmployeeTask(Number(employeeId) ,task.id);
+                      navigate(-1);
+                    }}                       >
+                    Delete
+                    </Button>
                 </Box>
               </Box>
 

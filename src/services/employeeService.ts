@@ -87,3 +87,7 @@ export const addTaskComment = async (employeeId: number, taskId: number, comment
     timestamp: new Date().toISOString()
   };
 };
+
+export const deleteEmployeeTask = async (employeeId: number, taskId: number): Promise<void> => {
+ await API.delete(`/employees/${employeeId}/tasks/${taskId}`);
+}
